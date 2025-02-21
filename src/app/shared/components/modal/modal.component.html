@@ -1,0 +1,11 @@
+<div [ngClass]="{'opacity-0 pointer-events-none': !isOpen, 'opacity-100': isOpen}"
+  class="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm transition-all duration-300"
+  (click)="closeModal()">
+  <div
+    class="relative w-full max-w-md bg-gray-800 border border-gray-700 rounded-lg shadow-md transition-all duration-300"
+    [ngClass]="{'scale-95 opacity-0': !isOpen, 'scale-100 opacity-100': isOpen}" (click)="$event.stopPropagation()">
+
+    <ng-content></ng-content>
+
+  </div>
+</div>

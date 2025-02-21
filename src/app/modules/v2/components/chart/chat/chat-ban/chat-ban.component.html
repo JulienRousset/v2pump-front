@@ -1,0 +1,88 @@
+<app-modal [isOpen]="isOpen" (isOpenChange)="isOpenChange.emit($event)" >
+  <div class="flex items-center h-9 pl-3 pr-2 border-b border-gray-700/50">
+    <div class="flex-1 flex items-center justify-between">
+        <div class="text-sm font-medium text-gray-400">Banned Users</div>
+        <button class="text-gray-400 hover:text-white transition-all duration-200 p-1.5"
+            (click)="isOpenChange.emit(false)">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+</div>
+  <div class="w-full max-w-2xl mx-auto p-4">
+    <!-- Search bar -->
+    <div class="mb-4">
+      <input type="text" [(ngModel)]="searchTerm" (input)="onSearch($event)" placeholder="Search banned users..."
+        class="w-full px-4 py-2 rounded-lg bg-gray-700 text-white border border-gray-600 focus:outline-none focus:border-blue-500" />
+    </div>
+
+    <!-- Users list avec scroll infini -->
+    <div class="space-y-3 h-[450px]">
+      <virtual-scroller #scroll [items]="bannedUsers" [enableUnequalChildrenSizes]="true" 
+      (vsChange)="onVsChange($event)"
+       >
+
+       <div *ngFor="let ban of scroll.viewPortItems" 
+       class="group p-3 rounded-lg bg-gray-800/50 border border-gray-700/50 mb-2">
+    
+    <!-- Section du haut -->
+    <div class="flex justify-between items-center">
+      <!-- User info -->
+      <div class="flex items-center space-x-3">
+        <img [src]="ban.bannedUser.picture || 'default-avatar.png'" 
+             [alt]="ban.bannedUser.name"
+             class="w-8 h-8 rounded-full">
+        <div>
+          <div class="text-sm font-medium text-white">{{ ban.bannedUser.name ? ban.bannedUser.name : '-' }}</div>
+          <div class="text-xs text-gray-400 font-mono">{{ ban.bannedUser.wallet_address | slice:0:8 }}</div>
+        </div>
+      </div>
+  
+      <!-- Status et action -->
+      <div class="flex items-center space-x-3">
+        <span class="text-xs px-2 py-1 rounded-full bg-gray-700 text-gray-300">
+          {{ formatTimeRemaining(ban.expiresAt) }}
+        </span>
+        <button (click)="unbanUser(ban.bannedUser.id)"
+                class="text-xs px-3 py-1 rounded-full bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white"
+                [disabled]="isLoading">
+          Unban
+        </button>
+      </div>
+    </div>
+  
+    <!-- Ligne de séparation -->
+    <div class="my-2 border-t border-gray-700/30"></div>
+  
+    <!-- Section du bas -->
+    <div class="grid grid-cols-2 gap-2 text-xs">
+      <div>
+        <span class="text-gray-500">Banned by:</span>
+        <span class="text-gray-300 ml-1">{{ ban.banningUser.name }}</span>
+      </div>
+      <div>
+        <span class="text-gray-500">Date:</span>
+        <span class="text-gray-300 ml-1">{{ ban.createdAt | date:'short' }}</span>
+      </div>
+      <div>
+        <span class="text-gray-500">Reason:</span>
+        <span class="text-gray-300 ml-1">{{ ban.reason || 'N/A' }}</span>
+      </div>
+    </div>
+  </div>
+  
+
+        <!-- Loading indicator -->
+        <div *ngIf="isLoading" class="flex justify-center p-3">
+          <div class="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-gray-400"></div>
+        </div>
+
+        <!-- Empty state -->
+        <div *ngIf="!isLoading && bannedUsers.length === 0" class="text-center py-8 text-gray-400">
+          {{ searchTerm ? 'No banned users found matching your search' : 'No banned users' }}
+        </div>
+      </virtual-scroller>
+    </div>
+  </div>
+</app-modal>

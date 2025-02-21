@@ -1,0 +1,331 @@
+<app-modal [(isOpen)]="showPinnedMessages" (onClose)="togglePinnedMessagesModal()">
+    <div class="flex items-center h-9 pl-3 pr-2 border-b border-gray-700/50">
+        <div class="flex-1 flex items-center justify-between">
+            <div class="text-sm font-medium text-gray-400">Pin</div>
+            <button class="text-gray-400 hover:text-white transition-all duration-200 p-1.5"
+                (click)="togglePinnedMessagesModal()">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <div class="p-4 h-[450px]" *ngIf="showPinnedMessages">
+        <virtual-scroller #scroll [items]="pinnedMessages" [enableUnequalChildrenSizes]="true"
+            (vsChange)="onVsChange($event)" [class.loading]="isLoadingPinned">
+
+            <div *ngFor="let message of scroll.viewPortItems">
+                <article class="group bg-gray-700/40 rounded-lg border border-gray-600/30 
+                       hover:border-gray-500/50 hover:bg-gray-700/50 
+                       transition-all duration-200 mb-2.5">
+                    <div class="flex items-start gap-3 p-3">
+                        <img [src]="message.sender.picture" [alt]="message.sender.name"
+                            class="w-8 h-8 rounded-full object-cover ring-1 ring-gray-600/50">
+
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-sm font-medium text-gray-100">
+                                        {{message.senderId === solana.session?.id ? 'You' : message.sender.name ||
+                                        message.sender.wallet_address.slice(0, 6)}}
+                                    </span>
+                                    <div class="h-1 w-1 rounded-full bg-gray-500"></div>
+                                    <span class="text-xs text-gray-400">
+                                        {{message.timestamp | date:'HH:mm'}}
+                                    </span>
+                                </div>
+
+                                <div class="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <button class="p-1.5 text-gray-400 hover:text-gray-200 rounded-full
+                                         hover:bg-gray-600/30 transition-colors">
+                                        <i class="fas fa-reply text-xs"></i>
+                                    </button>
+                                    <button class="p-1.5 text-gray-400 hover:text-gray-200 rounded-full
+                                         hover:bg-gray-600/30 transition-colors">
+                                        <i class="fas fa-times text-xs"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <p class="text-xs text-gray-300 leading-relaxed break-words">
+                                {{message.content}}
+                            </p>
+                        </div>
+                    </div>
+                </article>
+            </div>
+
+            <div *ngIf="isLoadingPinned" class="flex justify-center p-3">
+                <div class="animate-spin rounded-full h-6 w-6 border-t-2 border-b-2 border-gray-400"></div>
+            </div>
+        </virtual-scroller>
+
+        <div *ngIf="!pinnedMessages.length" class="flex items-center justify-center py-8 text-gray-500 text-sm">
+            Aucun message épinglé
+        </div>
+    </div>
+</app-modal>
+<app-chat-moderator *ngIf="role == 'owner'" [(isOpen)]="isModeratorModalOpen" [coinId]="coinId">
+</app-chat-moderator>
+<app-chat-ban [coinId]="coinId" [(isOpen)]="openBanndedList" *ngIf="openBanndedList && role != 'user'"></app-chat-ban>
+<div class="w-full border border-gray-700 rounded-lg shadow-md bg-gray-800 flex flex-col h-[600px]" id="containerDragLimit">
+    <div class="flex-1 overflow-y-auto" #scroll (scroll)="onScroll($event)">
+        <div class="sticky top-0 z-10"  *ngIf="pinnedMessages?.length == 0 && role != 'user'">
+            <div class="bg-gray-800/95 backdrop-blur-sm border-b border-gray-700 py-1.5 px-2">
+                <div class="flex items-start gap-2">
+                    <app-dropdown [options]="optionSettings" (optionSelected)="settingSelection($event)">
+                        <button
+                            class="text-[10px] px-1.5 py-0.5 rounded bg-gray-700 hover:bg-gray-600 text-gray-300 flex items-center gap-0.5">
+                            <span>Setting</span>
+                            <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                    </app-dropdown>
+                </div>
+            </div>
+        </div>
+
+        <div class="sticky top-0 z-10" *ngIf="pinnedMessages && pinnedMessages[0]">
+            <div class="bg-gray-800/95 backdrop-blur-sm border-b border-gray-700 py-1.5 px-2">
+                <div class="flex items-start gap-2">
+                    <div class="flex flex-col items-center gap-1">
+                        <img class="w-5 h-5 rounded-full" [src]="pinnedMessages[0].sender.picture" alt="avatar">
+                    </div>
+                    <div class="flex flex-col flex-1">
+                        <span class="text-xs font-medium text-gray-300">{{pinnedMessages[0].senderId ===
+                            solana.session?.id ? 'You' : pinnedMessages[0].sender.name ||
+                            pinnedMessages[0].sender.wallet_address.slice(0, 6)}}</span>
+                        <span class="text-xs text-gray-400 line-clamp-1">{{pinnedMessages[0].content}}</span>
+                    </div>
+                    <button (click)="togglePinnedMessagesModal()"
+                        class="text-[10px] px-1.5 py-0.5 rounded bg-gray-700 hover:bg-gray-600 text-gray-300 flex items-center gap-0.5">
+                        <span>View</span>
+                        <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                    </button>
+                    <app-dropdown [options]="optionSettings" (optionSelected)="settingSelection($event)"
+                        *ngIf="role != 'user'">
+                        <button
+                            class="text-[10px] px-1.5 py-0.5 rounded bg-gray-700 hover:bg-gray-600 text-gray-300 flex items-center gap-0.5">
+                            <span>Setting</span>
+                            <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                    </app-dropdown>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="relative" style="height: 100%;">
+
+            <div class="absolute inset-0 bg-gray-900/40 backdrop-blur-sm flex items-center justify-center z-10"
+                *ngIf="isInitialLoad">
+                <div class="flex items-center gap-6 p-8 rounded-lg flex-col text-center">
+                    <div class="flex flex-col gap-1">
+                        <div class="text-center py-2">
+                            <div
+                                class="inline-block animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-gray-400">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="absolute inset-0 bg-gray-900/40 backdrop-blur-sm flex items-center justify-center z-10"
+                *ngIf="messages.length == 0 && !isInitialLoad">
+                <div class="flex items-center gap-6 p-8 rounded-lg flex-col text-center">
+                    <div class="flex flex-col gap-1">
+                        <div class="text-white text-xl font-semibold">
+                            No messages yet
+                        </div>
+                        <div class="text-gray-300 text-sm">
+                            Be the first to start the conversation!
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="p-4 flex flex-col">
+                <div *ngIf="isLoading && hasMoreMessages" class="text-center py-2">
+                    <div class="inline-block animate-spin rounded-full h-4 w-4 border-t-2 border-b-2 border-gray-400">
+                    </div>
+                </div>
+
+
+                <ng-container *ngFor="let group of messages">
+                    <div class="flex mb-2">
+                        <div class="w-10 h-10 flex-shrink-0">
+                            <img class="w-10 h-10 rounded-full" [src]="group.sender.picture" alt="avatar">
+                        </div>
+
+                        <div class="ml-2 flex-1">
+                            <div class="flex items-center justify-between w-full">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-medium"
+                                        [ngClass]="{'text-blue-400': group.senderId === solana.session?.id, 'text-green-400': group.senderId !== solana.session?.id}">
+                                        {{group.senderId === solana.session?.id ? 'You' : group.sender.name ||
+                                        group.sender.wallet_address.slice(0, 6)}}
+                                    </span>
+                                    <span class="text-xs text-gray-500">•</span>
+                                    <span class="text-xs px-1.5 py-0.5 rounded" *ngIf="group.sender.role && group.sender.role != 'user'" [ngClass]="{
+                                            'bg-purple-900 text-purple-200': group.sender.role === 'Admin',
+                                            'bg-blue-900 text-blue-200': group.sender.role === 'Moderator',
+                                            'bg-gray-700 text-gray-300': !group.sender.role || group.sender.role === 'Member'
+                                        }">
+                                        {{group.sender.role || 'Member'}}
+                                    </span>
+                                </div>
+                                <span class="text-[10px] text-gray-500 whitespace-nowrap ml-auto">
+                                    {{group.messages[0].timestamp | date:'h:mm a'}}
+                                </span>
+                            </div>
+
+
+
+                            <!-- Messages du groupe -->
+                            <ng-container *ngFor="let message of group.messages">
+                                <!-- Message individuel -->
+                                <div class="group relative">
+                                    <!-- Message cité si présent -->
+                                    <div *ngIf="message.parentMessage" class="mt-1 mb-1">
+                                        <div
+                                            class="bg-gray-700 rounded p-1.5 max-w-[80%] text-xs flex items-center gap-1">
+                                            <div class="border-l-2 border-gray-500 pl-1.5 text-gray-400">
+                                                <span class="font-medium">
+                                                    {{message.parentMessage.senderId === solana.session?.id ? 'You' :
+                                                    message.parentMessage.sender.name ||
+                                                    message.parentMessage.sender.wallet_address.slice(0, 6)}}
+                                                </span>
+                                                <span class="line-clamp-1">{{message.parentMessage.content}}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                    <!-- Contenu du message -->
+                                    <div class="text-gray-300">{{message.content}}</div>
+
+                                    <div
+                                        class="absolute right-0 top-0 hidden group-hover:flex items-center space-x-2 bg-gray-900/70 rounded-lg px-2 py-1">
+                                        <button (click)="replyToMessage(message)"
+                                            class="p-1 text-gray-400 hover:text-white rounded">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+                                            </svg>
+                                        </button>
+                                        <button (click)="likeMessage(message)" class="p-1 rounded">
+                                            <svg [ngClass]="{'text-red-500': message.isLiked, 'text-gray-400 hover:text-white': !message.isLiked}"
+                                                class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                                <path
+                                                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                            </svg>
+                                        </button>
+                                        <button (click)="togglePinMessage(message)" *ngIf="role != 'user'"
+                                            class="p-1 text-gray-400 hover:text-white rounded">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    [attr.d]="message.isPinned ? 'M5 5h14l-4.5 8L19 21H5l4.5-8L5 5z' : 'M5 5h14M5 12h14M5 19h14'" />
+                                            </svg>
+                                        </button>
+                                        <button *ngIf="message.senderId == solana.session?.id || role != 'user'"
+                                            (click)="deleteMessage(message)"
+                                            class="p-1 text-gray-400 hover:text-red-500 rounded">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                            </svg>
+                                        </button>
+                                        <app-dropdown [options]="optionsDropdown" *ngIf="role != 'user'"
+                                            (optionSelected)="banSelection(message, $event)">
+                                            <button (click)="message.showBanMenu = !message.showBanMenu"
+                                                class="p-1 text-gray-400 hover:text-yellow-500 rounded">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor"
+                                                    viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                                                </svg>
+                                            </button>
+                                        </app-dropdown>
+                                    </div>
+
+                                    <!-- Compteur de likes -->
+                                    <div *ngIf="message.likesCount > 0" style="margin-top: -2px;">
+                                        <div class="text-xs text-red-400">{{message.likesCount}} ❤️</div>
+                                    </div>
+                                </div>
+                            </ng-container>
+                        </div>
+                    </div>
+                </ng-container>
+            </div>
+        </div>
+    </div>
+
+    <!-- Zone de réponse et saisie -->
+    <div class="border-t border-gray-700">
+        <!-- Zone de réponse active -->
+        <div *ngIf="replyingTo" class="px-4 py-2 bg-gray-700">
+            <div class="flex items-center justify-between">
+                <div class="flex-1">
+                    <div class="text-xs text-gray-400">Réponse à {{replyingTo.senderName}}</div>
+                    <div class="pl-2 border-l-2 border-gray-600 mt-1">
+                        <p class="text-sm text-gray-300 line-clamp-1">{{replyingTo.content}}</p>
+                    </div>
+                </div>
+                <button (click)="cancelReply()" class="ml-2 p-1 text-gray-400 hover:text-white">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="relative">
+            <!-- Overlay de connexion -->
+            <div class="absolute inset-0 bg-gray-900/70 backdrop-blur-sm flex items-center justify-center z-10" *ngIf="!solana.session?.id">
+                <div class="flex items-center gap-4 p-6 rounded-lg">
+                    <div class="text-white text-sm">
+                        Sign in to send a message
+                    </div>
+                    <button (click)="solana.connect()"
+                        class="flex items-center px-3 h-9 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 transition-colors duration-200">
+                        Sign in
+                    </button>
+                </div>
+            </div>
+
+            <!-- Zone de saisie -->
+            <div class="p-4">
+                <form class="flex items-center" (submit)="sendMessage(); $event.preventDefault()">
+                    <input type="text" [(ngModel)]="newMessage" name="newMessage"
+                        class="flex-1  p-2 mr-2 border border-gray-700 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-blue-400 focus:outline-none placeholder-gray-400"
+                        placeholder="Écrivez un message...">
+
+                    <button type="submit" [disabled]="!newMessage?.trim()"
+                        [ngClass]="{'opacity-50 cursor-not-allowed': !newMessage?.trim()}"
+                        class="p-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M2 12l10-10v20l10-10H2z" />
+                        </svg>
+                    </button>
+
+
+                </form>
+            </div>
+        </div>
+
+    </div>
+</div>

@@ -1,0 +1,37 @@
+<!-- Dropdown Container -->
+<div (click)="toggleDropdown($event)" id="dropdownContainer">
+  <ng-content></ng-content>
+</div>
+<!-- Menu Dropdown -->
+<div
+  [class.hidden]="!isOpen"
+  class="absolute 
+         z-10 
+         mt-2
+         w-44
+         max-h-[130px]
+         overflow-auto
+         divide-y
+         divide-gray-100
+         dark:divide-gray-600
+         rounded-lg
+         bg-white 
+         dark:bg-gray-700
+         shadow-lg
+         scrollbar-thin
+         scrollbar-thumb-gray-400
+         scrollbar-track-gray-100
+         dark:scrollbar-thumb-gray-600
+         dark:scrollbar-track-gray-800"
+  #dropdown
+  id="dropdown"
+>
+  <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" >
+    <li *ngFor="let option of options">
+      <a (click)="selectOption(option)" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 
+                         dark:hover:text-white cursor-pointer">
+        {{ option || option?.label }}
+      </a>
+    </li>
+  </ul>
+</div>

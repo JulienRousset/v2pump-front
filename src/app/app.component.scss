@@ -1,0 +1,160 @@
+::ng-deep app-root {
+    /* Container principal */
+    .notifier__container * {
+        box-sizing: border-box;
+        z-index: 999999;
+    }
+
+    .notifier__container-list {
+        margin: 0;
+        padding: 0;
+        list-style-type: none;
+    }
+
+    /* Style de base des notifications */
+    .notifier__notification {
+        display: flex;
+        align-items: center;
+        position: fixed;
+        visibility: hidden;
+        z-index: 10000;
+        will-change: transform;
+        backface-visibility: hidden;
+        min-width: 300px;
+        max-width: 450px;
+        transition: all 0.3s ease-in-out;
+    }
+
+    /* Style Material modernisé */
+    .notifier__notification--material {
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+        cursor: default;
+        padding: 16px 20px;
+        backdrop-filter: blur(8px);
+        margin: 8px;
+    }
+
+    /* Message de la notification */
+    .notifier__notification--material .notifier__notification-message {
+        display: inline-block;
+        margin: 0;
+        vertical-align: middle;
+        line-height: 1.5;
+        font-size: 0.95rem;
+        font-weight: 500;
+        letter-spacing: 0.3px;
+    }
+
+    /* Bouton de fermeture */
+    .notifier__notification--material .notifier__notification-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+        opacity: 0.7;
+        margin-left: auto;
+        margin-right: -8px;
+        border: none;
+        background: none;
+        cursor: pointer;
+        padding: 8px;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+    }
+
+    .notifier__notification--material .notifier__notification-button:hover {
+        opacity: 1;
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .notifier__notification--material .notifier__notification-button:focus {
+        outline: none;
+        opacity: 1;
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .notifier__notification--material .notifier__notification-button:active {
+        transform: scale(0.9);
+    }
+
+    /* Types de notifications avec dégradés modernes */
+    .notifier__notification--default {
+        background: linear-gradient(135deg, #2c3e50, #3498db);
+        color: #fff;
+    }
+
+    .notifier__notification--error {
+        background: linear-gradient(135deg, #e74c3c, #c0392b);
+        color: #fff;
+    }
+
+    .notifier__notification--info {
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        color: #fff;
+    }
+
+    .notifier__notification--success {
+        background: linear-gradient(135deg, #2ecc71, #27ae60);
+        color: #fff;
+    }
+
+    .notifier__notification--warning {
+        background: linear-gradient(135deg, #f1c40f, #f39c12);
+        color: #fff;
+    }
+
+    /* Icônes de fermeture */
+    .notifier__notification--material .notifier__notification-button-icon {
+        fill: #fff;
+        width: 16px;
+        height: 16px;
+    }
+
+    /* Animation d'entrée */
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    /* Animation de sortie */
+    @keyframes fadeOut {
+        from {
+            opacity: 1;
+        }
+        to {
+            opacity: 0;
+        }
+    }
+
+    /* État actif de la notification */
+    .notifier__notification--visible {
+        visibility: visible;
+        animation: slideIn 0.3s ease-out;
+    }
+
+    /* Effet de hover sur la notification */
+    .notifier__notification--material:hover {
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+        transform: translateY(-1px);
+    }
+
+    /* Media queries pour la responsivité */
+    @media screen and (max-width: 480px) {
+        .notifier__notification {
+            min-width: calc(100% - 32px);
+            margin: 8px 16px;
+        }
+
+        .notifier__notification--material {
+            padding: 12px 16px;
+        }
+    }
+}

@@ -1,0 +1,20 @@
+/* livestream-broadcaster.component.scss */
+
+.livestream-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.stream-setup {
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.cursor-move {
+  cursor: move;
+}
+
+.cursor-se-resize {
+  cursor: se-resize;
+}

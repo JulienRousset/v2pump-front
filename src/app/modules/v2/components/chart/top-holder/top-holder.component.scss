@@ -1,0 +1,54 @@
+virtual-scroll {
+  display: block;
+  width: 100%;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+ 
+  
+  text-align: left;
+  
+   display: flex;
+  flex-flow: column;
+  width: 100%;
+}
+
+thead {
+  flex: 0 0 auto;
+  width: 100%;
+}
+
+tbody {
+  width: 100%;
+      /* body takes all the remaining available space */
+  flex: 1 1 auto;
+  display: block;
+  overflow-y: scroll;
+}
+
+
+table tbody tr {
+  width: 100%;
+}
+table thead,
+table tbody tr {
+  display: table;
+  table-layout: fixed;
+}
+
+@keyframes numberFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.number-update {
+  animation: numberFadeIn 0.3s ease-out;
+}

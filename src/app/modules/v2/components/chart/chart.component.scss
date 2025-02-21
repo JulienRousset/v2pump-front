@@ -1,0 +1,209 @@
+@import "../../../../variables";
+
+
+
+
+::ng-deep app-chart {
+  #tradingview_chart {
+    height: 500px;
+    iframe {
+      width: 100% !important;
+      height: 500px;
+    }
+
+    /* Dans ton styles.css */
+.fade-in {
+  animation: fadeIn 300ms ease-out forwards;
+}
+
+.fade-out {
+  animation: fadeOut 300ms ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.hidden {
+  visibility: hidden;
+}
+
+
+  }
+
+
+  ::ng-deep virtual-scroller {
+    display: block;
+  }
+
+  ::ng-deep .virtual-scroll-viewport {
+    contain: style size !important;
+  }
+
+  /* Scrollbar styling */
+  ::ng-deep .virtual-scroll-viewport::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  ::ng-deep .virtual-scroll-viewport::-webkit-scrollbar-track {
+    background: #2d3748;
+  }
+
+  ::ng-deep .virtual-scroll-viewport::-webkit-scrollbar-thumb {
+    background-color: #4a5568;
+    border-radius: 3px;
+  }
+
+  ::ng-deep .virtual-scroll-viewport::-webkit-scrollbar-thumb:hover {
+    background-color: #718096;
+  }
+
+  .scrollable-paragraph {
+    height: 80px;
+    /* Limite de 35 lignes */
+    max-height: 80px;
+    /* Limite de 35 lignes */
+    line-height: 1.5em;
+    /* Hauteur d'une ligne */
+    overflow-y: auto;
+    /* Barre de défilement verticale */
+    padding-right: 0.5rem;
+    /* Espacement pour éviter que le texte touche la barre */
+    word-wrap: break-word;
+    /* Forcer la rupture des lignes pour éviter le débordement */
+    margin-left: -12px;
+    width: calc(100% + 25px);
+    background: rgb(36 45 59);
+    padding: 10px;
+  }
+
+  .no-description {
+    position: relative;
+    background: rgb(36 45 59);
+    padding: 8px;
+    transition: all 0.3s ease-in-out;
+    margin-left: -12px;
+    width: calc(100% + 25px);
+    height: 80px;
+    /* Limite de 35 lignes */
+  }
+
+
+
+  /* Grid column sizes */
+  .grid-cols-6 {
+    grid-template-columns:
+      minmax(180px, 1fr)
+      /* Wallet */
+      minmax(100px, 1fr)
+      /* Type */
+      minmax(120px, 1fr)
+      /* SOL */
+      minmax(120px, 1fr)
+      /* PUMP */
+      minmax(120px, 1fr)
+      /* Date */
+      minmax(100px, 1fr);
+    /* Transaction */
+  }
+
+  .transacrow {
+    background: #0000001f;
+  }
+
+  .transactions-table {
+    margin-top: 20px;
+    padding: 15px;
+    background: #1a1a1a;
+    border-radius: 8px;
+
+    h3 {
+      color: #ffffff;
+      margin-bottom: 15px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+
+      th,
+      td {
+        padding: 10px;
+        text-align: left;
+        border-bottom: 1px solid #333;
+      }
+
+      th {
+        color: #999;
+        font-weight: 600;
+      }
+
+
+      tr.buy {
+        td {
+          color: #00FA9A;
+        }
+      }
+
+      tr.sell {
+        td {
+          color: #FF4500;
+        }
+      }
+    }
+  }
+}
+
+virtual-scroll {
+  display: block;
+  width: 100%;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+ 
+  
+  text-align: left;
+  
+   display: flex;
+  flex-flow: column;
+  width: 100%;
+}
+
+thead {
+  flex: 0 0 auto;
+  width: 100%;
+}
+
+tbody {
+  width: 100%;
+      /* body takes all the remaining available space */
+  flex: 1 1 auto;
+  display: block;
+  overflow-y: scroll;
+}
+
+
+table tbody tr {
+  width: 100%;
+}
+table thead,
+table tbody tr {
+  display: table;
+  table-layout: fixed;
+}

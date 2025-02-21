@@ -1,0 +1,45 @@
+@import "../../../../variables";
+
+::ng-deep .app-my-messages {
+    display: flex;
+    justify-content: center;
+
+    .messages-wrapped {
+        width: 70%;
+
+        .message {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: none;
+            border-radius: 5px;
+            box-shadow: 0 3px 6px #00000029;
+            background-color: rgb(111,102,225, .1);
+            padding: 10px;
+            margin-bottom: 10px;
+
+            p {
+                margin-bottom: 0;
+            }
+            .mat-icon-button {
+                color: $color-white;
+                background-color: $color-phantom;
+                margin-left: 10px;
+                box-shadow: 0 3px 6px #00000029;
+            }
+            .mat-icon-button:hover, .mat-icon-button:focus {
+                background-color: rgb(111,102,225, .8);
+            }
+        }
+    }
+    .wallet-disconnect, .without-messages {
+        text-align: center;
+        margin-top: 15px;
+    }
+
+    @media (max-width: 768px) {
+        .messages-wrapped {
+            width: 90%;
+        }
+    }
+}

@@ -1,0 +1,192 @@
+<div class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white">
+    <div class="grid gap-6 md:gap-4 px-4 md:px-12">
+        <div class="flex flex-row justify-between gap-4 mt-4 mb-3">
+            <app-trendingmeta class="flex-1" (trendingChange)="selectTrending($event)"></app-trendingmeta>
+            <div class="flex-1">
+                <app-kingofthehill></app-kingofthehill>
+            </div>
+
+
+            <div class="flex-1">
+                <app-adscard></app-adscard>
+            </div>
+
+        </div>
+
+
+
+
+        <div class="flex flex-col md:flex-row justify-between items-start gap-4">
+            <!-- Sort By -->
+            <div class="flex items-center gap-4">
+                <div class="relative">
+                    <button id="filter-dropdown" type="button" (click)="isDropdownOpen = !isDropdownOpen"
+                        class="inline-flex items-center justify-between bg-gradient-to-r from-green-400 to-green-500 hover:from-green-500 hover:to-green-600 text-white text-sm font-medium px-4 py-2 rounded-md shadow-sm transition-all ease-in-out duration-300 focus:outline-none focus:ring-2 focus:ring-green-500">
+                        Sort: {{currentLabelSort}}
+                        <svg xmlns="http://www.w3.org/2000/svg" class="ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6" />
+                        </svg>
+                    </button>
+
+                    <!-- Dropdown Menu -->
+                    <div *ngIf="isDropdownOpen" class="absolute z-10 mt-2 w-38 rounded-md bg-gray-700 shadow-lg">
+                        <div class="py-1">
+                            <button *ngFor="let option of sortOptions"
+                                (click)="changeSort(option); isDropdownOpen = false"
+                                class="block w-full px-4 py-2 text-sm text-gray-200 hover:bg-green-500 hover:text-white">
+                                {{ option.label }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search Bar -->
+                <div class="flex items-center gap-2">
+                    <div class="relative">
+                        <input type="text" [(ngModel)]="searchQuery" placeholder="Search..."
+                            class="bg-gray-700 text-gray-200 text-sm px-4 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 w-64 pl-10">
+                        <svg xmlns="http://www.w3.org/2000/svg"
+                            class="h-5 w-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+
+                        <!-- Clear button -->
+                        <button *ngIf="searchQuery" (click)="clearSearch()"
+                            class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-200">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <!-- Search button with spinner -->
+                    <button [disabled]="loading || !searchQuery"
+                        (click)="this.loadCoins();this.disconnectAllServices();"
+                        class="bg-gradient-to-r from-green-400 to-green-500 hover:from-green-500 hover:to-green-600 text-white text-sm font-medium px-4 py-2 rounded-md shadow-sm transition-all ease-in-out duration-300 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:opacity-50 flex items-center gap-2">
+                        <span>Search</span>
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- Filters as Tags -->
+            <div class="flex flex-wrap gap-2 mt-4 md:mt-0">
+                <!-- Animation Tag -->
+                <div (click)="this.disableAnimate = !this.disableAnimate"
+                    class="bg-gray-700 hover:bg-green-500 text-gray-300 hover:text-white text-sm px-3 py-1.5 rounded-md cursor-pointer transition">
+                    Animation: <span class="font-semibold">{{disableAnimate ? 'OFF' : animate ? 'ON' : 'OFF'}}</span>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6" [@listAnimation]="coins.length"
+            (mouseenter)="animate = false" (mouseleave)="animate = true">
+            <!-- Animation pour chaque élément de la liste -->
+            <div *ngFor="let coin of coins; trackBy: trackByFn" @itemAnimation @fadeInAnimation
+                class="border border-gray-700 hover:border-white rounded-lg shadow-md bg-gray-800 overflow-hidden transition-all duration-300 ease-in-out hover:scale-105 p-3 flex flex-col relative min-h-[200px]">
+                <a [routerLink]="'/coin/' + coin.mint">
+                    <!-- Contenu principal -->
+                    <div class="flex flex-col gap-2">
+                        <!-- Ligne principale : Image + Infos principales -->
+                        <div class="flex items-center gap-2">
+                            <!-- Image -->
+                            <div class="flex-shrink-0">
+                                <img [src]="coin.image" [alt]="coin.name"
+                                    class="w-12 h-12 md:w-20 md:h-20 rounded-lg object-cover shadow-md" />
+                            </div>
+
+                            <!-- Infos principales -->
+                            <div class="flex-1 text-sm leading-tight">
+                                <!-- Nom du Coin -->
+                                <div class="text-sm font-bold text-white " style="font-size: 16px;">
+                                    {{ coin.name }}
+                                </div>
+                                <div class="text-xs text-gray-400 truncate mb-1 font-bold">
+                                    <div class="text-gray-400 truncate mb-0.5">{{ coin.ticker.startsWith('$') ? '' : '$'
+                                        }}<span class="hover:underline">{{ coin.ticker }}</span> </div>
+                                </div>
+                                <!-- Market Cap -->
+                                <div class="text-xs text-green-300 truncate flex">
+                                    MC: <span class="font-semibold ml-1">{{ coin.marketCap | shortenNumber }}</span>
+                                    <div class="ml-1 flex" *ngIf="coin.king || coin.ray">[<img *ngIf="coin.ray"
+                                            src="assets/images/migrated.webp" alt="King of the hill"
+                                            class="w-3 h-3" /><img *ngIf="coin.king" src="assets/images/king.webp"
+                                            alt="King of the hill" class="w-3 h-3" />]</div>
+                                </div>
+                                <!-- Créateur -->
+                                <div class="text-xs text-blue-300 truncate">
+                                    post: <span class="hover:underline">{{ coin.replies }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Description -->
+                        <div class="text-xs text-gray-300 mb-3">
+                            <p class="scrollable-paragraph" [ngClass]="{'no-description': !coin.description}">
+                                {{ coin.description || '' }}
+                            </p>
+                        </div>
+
+                    </div>
+
+                    <!-- Footer fixé en bas -->
+                    <div
+                        class="absolute bottom-3 left-3 right-3 flex justify-between items-center text-xs text-gray-400">
+                        <span>{{ coin.timestamp | timeAgo }}</span>
+                        <button class="text-blue-300 hover:underline">{{ coin.creator | shortenAddress }}</button>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+
+        <app-modal-loader [isLoading]="loading"></app-modal-loader>
+
+        <!-- Pagination -->
+        <div class="flex justify-center items-center mt-8 mb-6" *ngIf="!trending">
+            <div class="flex items-center space-x-2">
+                <!-- Bouton Précédent -->
+                <button [disabled]="currentPage === 1" (click)="changePage(currentPage - 1)"
+                    class="px-4 py-2 rounded-lg bg-gray-800 text-gray-300 border border-gray-700 hover:border-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                    <span class="hidden sm:inline">Précédent</span>
+                </button>
+
+                <!-- Numéros de pages -->
+                <div class="hidden sm:flex space-x-2">
+                    <button *ngFor="let page of getPaginationRange()" [class.active]="page === currentPage"
+                        [disabled]="page === '...'" (click)="page !== '...' ? changePage(+page) : null"
+                        class="w-10 h-10 rounded-lg flex items-center justify-center border transition-all duration-300"
+                        [ngClass]="{
+            'bg-blue-600 text-white border-blue-600': page === currentPage,
+            'bg-gray-800 text-gray-300 border-gray-700 hover:border-white': page !== currentPage && page !== '...',
+            'bg-gray-800 text-gray-500 border-gray-700 cursor-default': page === '...'
+          }">
+                        {{ page }}
+                    </button>
+                </div>
+
+                <!-- Bouton Suivant -->
+                <button [disabled]="currentPage === totalPages" (click)="changePage(currentPage + 1)"
+                    class="px-4 py-2 rounded-lg bg-gray-800 text-gray-300 border border-gray-700 hover:border-white disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 flex items-center gap-2">
+                    <span class="hidden sm:inline">Suivant</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+
+    </div>
+</div>
