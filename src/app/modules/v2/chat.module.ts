@@ -8,7 +8,6 @@ import { SharedModule } from '@shared/shared.module';
 
 import { HomeComponent } from './components/home/home.component';
 import { ChartComponent } from './components/chart/chart.component';
-import { UpdateMessageComponent } from './components/update-message/update-message.component';
 import { ShortenNumberPipe } from 'src/app/shorten-number.pipe';
 import { TimeAgoPipe } from 'src/app/time-ago.pipe';
 import { TrendingMetaComponent } from './components/home/trendingmeta/trendingmeta.component';
@@ -29,12 +28,16 @@ import { LivestreamBroadcasterComponent } from './components/chart/livestream-br
 import { LivestreamViewerComponent } from './components/chart/livestream-viewer/livestream-viewer.component';
 import { CameraComponent } from './components/chart/livestream-broadcaster/camera/camera.component';
 import { ScreenShareComponent } from './components/chart/livestream-broadcaster/screenshare/screenshare.component';
+import { TransactionComponent } from './components/chart/transaction/transaction.component';
+import { TradingViewComponent } from './components/chart/tradingview/tradingview.component';
+import { CountUpModule } from 'ngx-countup';
+import { AvatarViewerComponent } from './components/chart/avatar-viewer/avatar-viewer.component';
+import { AccountComponent } from './components/account/account.component';
 
 @NgModule({
   declarations: [
     HomeComponent,
     ChartComponent,
-    UpdateMessageComponent,
     TrendingMetaComponent,
     TimeAgoPipe,
     TimeAgo2Pipe,
@@ -52,11 +55,16 @@ import { ScreenShareComponent } from './components/chart/livestream-broadcaster/
     LivestreamBroadcasterComponent,
     LivestreamViewerComponent,
     CameraComponent,
-    ScreenShareComponent
+    ScreenShareComponent,
+    TransactionComponent,
+    TradingViewComponent,
+    AvatarViewerComponent,
+    AccountComponent
   ],
   imports: [
     SharedModule, 
     CommonModule,
+    CountUpModule,
     ChatRoutingModule,
     ReactiveFormsModule,
     VirtualScrollerModule,

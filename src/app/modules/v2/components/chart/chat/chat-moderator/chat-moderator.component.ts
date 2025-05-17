@@ -124,7 +124,6 @@ export class ChatModeratorComponent implements OnInit {
       )
   
       this.moderators = [...this.moderators, ...response.data.moderators];
-      console.log(this.moderators);
       this.hasMore = response.data.hasMore;
       this.offset += this.limit;
     } catch (error) {
@@ -151,7 +150,6 @@ export class ChatModeratorComponent implements OnInit {
   async removeModerator(userId: string) {
     try {
       const response = await this.chatService.removeModerator(this.coinId, userId);
-      console.log(response);
       if (response.status === 200) {
         this.moderators = this.moderators.filter(mod => mod.user.id !== userId);
         this.notificationService.showSuccess('Moderator successfully removed');

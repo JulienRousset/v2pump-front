@@ -1,0 +1,147 @@
+<app-edit-avatar [(isOpen)]="openEdit"></app-edit-avatar>
+
+<div class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white">
+    <div class="container mx-auto px-4 md:px-6 lg:px-8 py-6">
+
+        <div class="max-w-6xl flex mx-auto items-center justify-between w-full z-1">
+            <div class="flex items-center">
+                <div class="-mb-1 relative group">
+                    <app-avatar [encodedAvatar]="userData.picture ? userData.picture : '-'" [width]="70" [height]="70"
+                        [noPadding]="true"
+                        class="transform transition-transform duration-300 group-hover:scale-105"></app-avatar>
+                </div>
+
+                <div class="ml-2">
+                    <span class="text-xl font-semibold">{{userData.name ? userData.name : '-'}}</span>
+                </div>
+            </div>
+
+            <!-- Icône crayon à droite -->
+            <div class="cursor-pointer hover:text-gray-600" (click)="openEdit = true">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                </svg>
+            </div>
+        </div>
+        <!-- Container Principal -->
+        <div class="max-w-6xl mx-auto bg-gray-900 rounded-lg shadow-xl overflow-hidden z-2">
+
+            <!-- Section Table -->
+            <div class="p-4">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <!-- En-tête du tableau -->
+                        <thead>
+                            <tr class="border-b border-gray-700">
+                                <th class="px-6 py-4 text-gray-300 text-left bg-gray-800 rounded-tl-lg">Token</th>
+                                <th class="px-6 py-4 text-gray-300 text-right bg-gray-800">Balance</th>
+                                <th class="px-6 py-4 text-gray-300 text-right bg-gray-800 rounded-tr-lg">Actions</th>
+                            </tr>
+                        </thead>
+
+                        <!-- Corps du tableau -->
+                        <tbody class="divide-y divide-gray-700/50">
+                            <ng-container *ngFor="let item of tokens.items">
+                                <tr class="hover:bg-gray-700/50 bg-gray-700/10 transition-colors">
+                                    <!-- Colonne Token -->
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-3">
+                                            <!-- Logo Token -->
+                                            <div class="w-10 h-10 rounded-full overflow-hidden">
+                                                <img [src]="item.logoURI" alt="Fortuna"
+                                                    class="w-full h-full object-cover">
+                                            </div>
+
+                                            <!-- Informations Token -->
+                                            <div>
+                                                <p class="font-medium text-white text-base">
+                                                    {{item.name}}<span class="text-gray-400"></span>
+                                                </p>
+                                                <button
+                                                    class="flex items-center text-xs text-gray-400 hover:text-blue-400 transition-colors">
+                                                    {{item.address | shortenAddress}}
+                                                    <svg class="ml-1 w-4 h-4 text-blue-500" viewBox="0 0 15 16"
+                                                        fill="none">
+                                                        <path
+                                                            d="M5 5.5V3.75C5 3.04993 5 2.6999 5.13624 2.43251C5.25608 2.19731 5.44731 2.00608 5.68251 1.88624C5.9499 1.75 6.29993 1.75 7 1.75H11.75C12.4501 1.75 12.8001 1.75 13.0675 1.88624C13.3027 2.00608 13.4939 2.19731 13.6138 2.43251C13.75 2.6999 13.75 3.04993 13.75 3.75V8.5C13.75 9.20007 13.75 9.5501 13.6138 9.81749C13.4939 10.0527 13.3027 10.2439 13.0675 10.3638C12.8001 10.5 12.4501 10.5 11.75 10.5H10M3.25 14.25H8C8.70007 14.25 9.0501 14.25 9.31749 14.1138C9.55269 13.9939 9.74392 13.8027 9.86376 13.5675C10 13.3001 10 12.9501 10 12.25V7.5C10 6.79993 10 6.4499 9.86376 6.18251C9.74392 5.94731 9.55269 5.75608 9.31749 5.63624C9.0501 5.5 8.70007 5.5 8 5.5H3.25C2.54993 5.5 2.1999 5.5 1.93251 5.63624C1.69731 5.75608 1.50608 5.94731 1.38624 6.18251C1.25 6.4499 1.25 6.79993 1.25 7.5V12.25C1.25 12.9501 1.25 13.3001 1.38624 13.5675C1.50608 13.8027 1.69731 13.9939 1.93251 14.1138C2.1999 14.25 2.54993 14.25 3.25 14.25Z"
+                                                            stroke="currentColor" stroke-width="1.5"
+                                                            stroke-linecap="round" stroke-linejoin="round" />
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </td>
+
+                                    <!-- Colonne Balance -->
+                                    <td class="px-6 py-4 text-right">
+                                        <div class="flex flex-col gap-1">
+                                            <p><span class="font-bold text-white">
+                                                    ${{item.valueUsd | shortenNumber}}
+                                                </span></p>
+                                            <p><span class="text-gray-400">{{item.uiAmount | shortenNumber}}
+                                                    {{item.symbol}}
+                                                </span></p>
+                                        </div>
+                                    </td>
+
+                                    <!-- Colonne Actions -->
+                                    <td class="px-6 py-4">
+                                        <div class="flex justify-end gap-2">
+                                            <!-- Bouton Acheter -->
+                                            <button
+                                                class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg flex items-center gap-1 transition-colors">
+                                                <svg class="w-4 h-4" viewBox="0 0 16 16" fill="none">
+                                                    <path
+                                                        d="M11.709 7.19687H9.77023V2.67922C9.77023 1.6251 9.19925 1.41177 8.50278 2.20236L8.00082 2.77334L3.75297 7.60471C3.16944 8.26353 3.41414 8.80315 4.29258 8.80315H6.23141V13.3207C6.23141 14.3749 6.80238 14.5882 7.49885 13.7976L8.00082 13.2266L12.2486 8.3953C12.8321 7.73647 12.5874 7.19687 11.709 7.19687Z"
+                                                        fill="currentColor" />
+                                                </svg>
+                                                <span>Acheter</span>
+                                            </button>
+
+                                            <!-- Bouton Vendre -->
+                                            <button
+                                                class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg flex items-center gap-1 transition-colors">
+                                                <svg class="w-4 h-4 rotate-180" viewBox="0 0 16 16" fill="none">
+                                                    <path
+                                                        d="M11.709 7.19687H9.77023V2.67922C9.77023 1.6251 9.19925 1.41177 8.50278 2.20236L8.00082 2.77334L3.75297 7.60471C3.16944 8.26353 3.41414 8.80315 4.29258 8.80315H6.23141V13.3207C6.23141 14.3749 6.80238 14.5882 7.49885 13.7976L8.00082 13.2266L12.2486 8.3953C12.8321 7.73647 12.5874 7.19687 11.709 7.19687Z"
+                                                        fill="currentColor" />
+                                                </svg>
+                                                <span>Vendre</span>
+                                            </button>
+
+                                            <!-- Bouton Options -->
+                                            <button
+                                                class="text-gray-300 hover:text-white bg-gray-700 hover:bg-gray-600 p-2 rounded-lg transition-colors">
+                                                <svg class="w-4 h-4" viewBox="0 0 16 16" fill="none">
+                                                    <path
+                                                        d="M8.0013 8.0001H8.0096M8.0013 4.00008H8.0096M8.0013 12.0001H8.0096M8.67 8.0001C8.67 8.3683 8.3695 8.6688 8.0013 8.6688C7.633 8.6688 7.3325 8.3683 7.3325 8.0001C7.3325 7.6318 7.633 7.3313 8.0013 7.3313C8.3695 7.3313 8.67 7.6318 8.67 8.0001Z"
+                                                        stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                                                        stroke-linejoin="round" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </ng-container>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Section Pagination -->
+            <div class="bg-gray-800 p-4 border-t border-gray-700 flex justify-between items-center">
+                <span class="text-gray-400">Affichage de 1 à 10 sur 42 tokens</span>
+                <div class="flex gap-2">
+                    <button
+                        class="px-3 py-1 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors">Précédent</button>
+                    <button
+                        class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors">Suivant</button>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+</div>

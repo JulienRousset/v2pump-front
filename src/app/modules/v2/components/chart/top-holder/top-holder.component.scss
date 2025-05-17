@@ -3,6 +3,116 @@ virtual-scroll {
   width: 100%;
 }
 
+/* Styles pour les lignes du top 3 */
+.top-holder-1 {
+  background: linear-gradient(to right, rgba(99, 102, 241, 0.1), rgba(168, 85, 247, 0.05));
+}
+
+.top-holder-2 {
+  background: linear-gradient(to right, rgba(99, 102, 241, 0.05), rgba(168, 85, 247, 0));
+}
+
+.top-holder-3 {
+  background: linear-gradient(to right, rgba(99, 102, 241, 0.02), rgba(168, 85, 247, 0));
+}
+
+/* Animation subtile au survol pour les top holders */
+.top-holder-1:hover,
+.top-holder-2:hover,
+.top-holder-3:hover {
+  background: linear-gradient(to right, rgba(99, 102, 241, 0.15), rgba(168, 85, 247, 0.1));
+}
+
+/* Styles pour les badges de rang */
+.rank-badge {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.rank-badge-1 {
+  background: linear-gradient(to right, #eab308, #f59e0b);
+  color: #1f2937;
+}
+
+.rank-badge-2 {
+  background: linear-gradient(to right, #a1a1aa, #d1d5db);
+  color: #1f2937;
+}
+
+.rank-badge-3 {
+  background: linear-gradient(to right, #b45309, #d97706);
+  color: #f3f4f6;
+}
+
+/* Animation de la barre de progression */
+.progress-bar {
+  width: 5rem;
+  height: 0.375rem;
+  background-color: #374151;
+  border-radius: 9999px;
+  overflow: hidden;
+  margin-top: 0.25rem;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 9999px;
+  background: linear-gradient(to right, #6366f1, #a855f7);
+  transition: width 0.5s ease-out;
+}
+
+/* Styles pour les avatars des wallets */
+.wallet-avatar {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.625rem;
+  font-weight: 700;
+  background: linear-gradient(to right, #374151, #1f2937);
+  color: #e5e7eb;
+}
+
+/* Animation pour le lien externe */
+.external-link-icon {
+  width: 0.75rem;
+  height: 0.75rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  color: #6366f1;
+}
+
+.wallet-link:hover .external-link-icon {
+  opacity: 1;
+}
+
+/* Style pour la scrollbar personnalisée */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 0px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(79, 70, 229, 0.3);
+  border-radius: 4px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(79, 70, 229, 0.6);
+}
+
+
 table {
   border-collapse: collapse;
   border-spacing: 0;

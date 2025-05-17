@@ -45,7 +45,7 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                     </svg>
-                    <span>{{ viewerCount }}</span>
+                    <span>{{ count }}</span>
                 </div>
                 <span class="text-sm truncate max-w-[150px]">{{ streamTitle }}</span>
             </div>
@@ -54,10 +54,20 @@
             <div class="flex items-center space-x-1">
                 <!-- Tailles -->
                 <div class="flex items-center mr-2 space-x-1 border-r border-gray-700 pr-2">
-                    <button *ngFor="let size of sizeArray" (click)="setSize(size)"
+                    <button (click)="setSize('small')"
                         class="p-1.5 rounded hover:bg-gray-700 text-xs font-medium text-white transition-colors"
-                        [class.bg-gray-700]="currentSize === size">
-                        {{ size.charAt(0).toUpperCase() }}
+                        [class.bg-gray-700]="currentSize === 'small'" title="Petite taille">
+                        S
+                    </button>
+                    <button (click)="setSize('medium')"
+                        class="p-1.5 rounded hover:bg-gray-700 text-xs font-medium text-white transition-colors"
+                        [class.bg-gray-700]="currentSize === 'medium'" title="Taille moyenne">
+                        M
+                    </button>
+                    <button (click)="setSize('large')"
+                        class="p-1.5 rounded hover:bg-gray-700 text-xs font-medium text-white transition-colors"
+                        [class.bg-gray-700]="currentSize === 'large'" title="Grande taille">
+                        L
                     </button>
                 </div>
 
@@ -106,28 +116,26 @@
 
         <!-- Conteneur vidéo -->
         <div class="relative bg-black" [style.height.px]="dimensions.height">
-            <video #videoElement 
-                autoplay 
-                playsinline 
-                [muted]="true"
-                class="w-full h-full object-cover">
+            <video #videoElement autoplay playsinline [muted]="true" class="w-full h-full object-cover">
             </video>
 
-            <!-- Indicateur de chargement -->
+            <!-- Loading indicator -->
             <div *ngIf="isLoading" class="absolute inset-0 flex items-center justify-center bg-black/50">
-                <div class="text-white">Chargement de la caméra...</div>
+                <div class="text-white">Loading camera...</div>
             </div>
 
-            <!-- Message si pas de flux vidéo -->
-            <div *ngIf="!isLoading && !localVideoTrack" class="absolute inset-0 flex items-center justify-center bg-black/50">
-                <div class="text-white">Aucun flux vidéo disponible</div>
+            <!-- Message if no video stream -->
+            <div *ngIf="!isLoading && !localVideoTrack"
+                class="absolute inset-0 flex items-center justify-center bg-black/50">
+                <div class="text-white">No video stream available</div>
             </div>
 
-            <!-- Indicateur de mode -->
+            <!-- Mode indicator -->
             <div *ngIf="isScreenSharing"
                 class="absolute top-2 left-2 bg-blue-600/75 text-white text-xs px-2 py-1 rounded-full">
-                Partage d'écran actif
+                Screen sharing active
             </div>
+
 
             <!-- Poignée de redimensionnement -->
             <div class="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize" (mousedown)="startResizing($event)">

@@ -47,13 +47,9 @@ export class ChatBanComponent implements OnInit {
   }
 
   async loadBannedUsers() {
-
-    console.log('load ??')
     if (!this.hasMore || this.isLoading) return;
 
     try {
-
-      console.log('loading')
       this.isLoading = true;
       this.error = null;
 

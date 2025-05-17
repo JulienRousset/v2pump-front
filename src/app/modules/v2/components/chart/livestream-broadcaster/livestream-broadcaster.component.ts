@@ -1,10 +1,10 @@
 import { Component, ViewChild, ElementRef, HostListener, Input, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
-import AgoraRTC, { 
-    IAgoraRTCClient, 
-    ICameraVideoTrack, 
-    IMicrophoneAudioTrack, 
+import AgoraRTC, {
+    IAgoraRTCClient,
+    ICameraVideoTrack,
+    IMicrophoneAudioTrack,
     ILocalVideoTrack,
     ClientRole
 } from 'agora-rtc-sdk-ng';
@@ -18,7 +18,10 @@ export class LivestreamBroadcasterComponent implements OnInit {
     @ViewChild('videoElement') videoElement!: ElementRef;
     @Input() coinId: string = '';
     @Input() userId: string = '';
+    @Input() count: any = 0;
 
+
+    private activeMediaStreams: MediaStream[] = [];
     private client: IAgoraRTCClient;
     localAudioTrack: IMicrophoneAudioTrack | null = null;
     localVideoTrack: ICameraVideoTrack | null = null;
@@ -30,14 +33,13 @@ export class LivestreamBroadcasterComponent implements OnInit {
     isAudioEnabled: boolean = true;
     isVideoEnabled: boolean = true;
     isScreenSharing: boolean = false;
-    viewerCount: number = 0;
     isLoading: boolean = false;
 
     // Gestion de la taille
     sizeArray = ['small', 'medium', 'large'];
-    currentSize: 'small' | 'medium' | 'large' = 'medium';
+    currentSize: 'small' | 'medium' | 'large' = 'small';
     dimensions = { width: 320, height: 180 };
-    private sizeDimensions = {
+    private readonly sizeDimensions = {
         small: { width: 320, height: 180 },
         medium: { width: 480, height: 270 },
         large: { width: 640, height: 360 }
@@ -57,8 +59,8 @@ export class LivestreamBroadcasterComponent implements OnInit {
         private http: HttpClient,
         private route: ActivatedRoute
     ) {
-        this.client = AgoraRTC.createClient({ 
-            mode: "live", 
+        this.client = AgoraRTC.createClient({
+            mode: "live",
             codec: "h264",
             role: "host"
         });
@@ -67,19 +69,19 @@ export class LivestreamBroadcasterComponent implements OnInit {
     async ngOnInit() {
     }
 
-    private updateViewerCount() {
-        this.viewerCount = this.remoteUsers.size;
-    }
+
 
     async startStream() {
         this.isLoading = true;
         this.isStreaming = true;
         try {
+
+
             // Vérifier les permissions
             const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-            console.log("Permissions de la caméra accordées", stream);
+            this.activeMediaStreams.push(stream);
 
-            const response: any = await this.http.post(`http://localhost:3000/livestream/create`, {
+            const response: any = await this.http.post(`http://127.0.0.1:3000/livestream/create`, {
                 coinId: this.coinId,
                 title: this.streamTitle,
                 description: this.streamDescription
@@ -89,6 +91,8 @@ export class LivestreamBroadcasterComponent implements OnInit {
 
             await this.client.setClientRole("host");
             await this.client.join(appId, channelName, token, uid);
+
+
 
             [this.localAudioTrack, this.localVideoTrack] = await AgoraRTC.createMicrophoneAndCameraTracks(
                 {
@@ -112,8 +116,8 @@ export class LivestreamBroadcasterComponent implements OnInit {
 
             if (this.videoElement?.nativeElement && this.localVideoTrack) {
                 this.videoElement.nativeElement.srcObject = new MediaStream([this.localVideoTrack.getMediaStreamTrack()]);
-                await this.videoElement.nativeElement.play().catch((error: any) => {
-                    console.error("Erreur lors de la lecture de la vidéo:", error);
+                this.localVideoTrack.play(this.videoElement.nativeElement, {
+                    mirror: false
                 });
             }
 
@@ -201,45 +205,123 @@ export class LivestreamBroadcasterComponent implements OnInit {
     }
 
     async toggleCamera() {
-        if (this.localVideoTrack && !this.isScreenSharing) {
-            this.isVideoEnabled = !this.isVideoEnabled;
-            await this.localVideoTrack.setEnabled(this.isVideoEnabled);
+        try {
+            if (!this.isScreenSharing) {
+                this.isVideoEnabled = !this.isVideoEnabled;
+
+                if (this.localVideoTrack) {
+                    if (this.isVideoEnabled) {
+                        // Recréer le track vidéo
+                        await this.client.unpublish(this.localVideoTrack);
+                        this.localVideoTrack.close();
+
+                        const obj = {
+                            width: 1280,
+                            height: 720,
+                            frameRate: 30,
+                            bitrateMin: 1000,
+                            bitrateMax: 2500,
+                        }
+                        //@ts-ignore
+                        this.localVideoTrack = await AgoraRTC.createCameraVideoTrack({
+                            encoderConfig: obj
+                        });
+
+                        await this.client.publish(this.localVideoTrack);
+
+                        if (this.videoElement?.nativeElement) {
+                            this.videoElement.nativeElement.srcObject = new MediaStream([this.localVideoTrack.getMediaStreamTrack()]);
+                        }
+                    } else {
+                        await this.localVideoTrack.setEnabled(false);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Erreur lors du toggle de la caméra:', error);
         }
     }
 
+
     async endStream() {
         try {
-            this.remoteUsers.clear();
-            this.viewerCount = 0;
+            // Arrêter le streaming si actif
+            if (this.isStreaming) {
+                // 1. Arrêter tous les tracks de mediaStream
+                // 1. Arrêter tous les streams actifs stockés
+                this.activeMediaStreams.forEach(stream => {
+                    stream.getTracks().forEach(track => {
+                        track.enabled = false;
+                        track.stop();
+                    });
+                });
+                this.activeMediaStreams = [];
+                // 2. Arrêter les tracks de l'élément vidéo
+                if (this.videoElement?.nativeElement) {
+                    const stream = this.videoElement.nativeElement.srcObject;
+                    if (stream instanceof MediaStream) {
+                        stream.getTracks().forEach(track => {
+                            track.stop();
+                        });
+                    }
+                    this.videoElement.nativeElement.srcObject = null;
+                }
 
-            if (this.localAudioTrack) {
-                this.localAudioTrack.close();
-                this.localAudioTrack = null;
-            }
-            if (this.localVideoTrack) {
-                this.localVideoTrack.close();
-                this.localVideoTrack = null;
-            }
-            if (this.screenTrack) {
-                this.screenTrack.close();
-                this.screenTrack = null;
-            }
+                // 3. Arrêter les tracks Agora
+                if (this.localAudioTrack) {
+                    this.localAudioTrack.stop();
+                    this.localAudioTrack.close();
+                    this.localAudioTrack = null;
+                }
 
-            await this.client.leave();
-            await this.http.delete(`http://localhost:3000/livestream/${this.coinId}`).toPromise();
+                if (this.localVideoTrack) {
+                    this.localVideoTrack.stop();
+                    this.localVideoTrack.close();
+                    this.localVideoTrack = null;
+                }
 
-            this.isStreaming = false;
-            this.isScreenSharing = false;
+                if (this.screenTrack) {
+                    this.screenTrack.stop();
+                    this.screenTrack.close();
+                    this.screenTrack = null;
+                }
 
-            if (this.videoElement?.nativeElement) {
-                this.videoElement.nativeElement.srcObject = null;
+                // 4. Quitter le client Agora
+                if (this.client) {
+                    await this.client.leave();
+                    this.client.removeAllListeners();
+                }
+
+                // 5. Arrêter tous les tracks du navigateur
+                const streams = await navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+                    .catch(() => null);
+                if (streams) {
+                    streams.getTracks().forEach(track => {
+                        track.stop();
+                    });
+                }
+
+                // 6. Supprimer le livestream du serveur
+                if (this.coinId) {
+                    try {
+                        await this.http.delete(`http://127.0.0.1:3000/livestream/${this.coinId}`).toPromise();
+                    } catch (error) {
+                        console.error('Erreur lors de la suppression du livestream:', error);
+                    }
+                }
+
+                // 7. Réinitialiser les états
+                this.isStreaming = false;
+                this.isScreenSharing = false;
+                this.isAudioEnabled = true;
+                this.isVideoEnabled = true;
             }
         } catch (error) {
             console.error('Erreur lors de l\'arrêt du stream:', error);
         }
     }
 
-    setSize(size: string) {
+    setSize(size: 'small' | 'medium' | 'large') {
         this.currentSize = size as 'small' | 'medium' | 'large';
         const newDimensions = this.sizeDimensions[this.currentSize];
 

@@ -6,10 +6,11 @@ import { interval, Subscription } from 'rxjs';
 import { SolanaService } from '@shared/services/solana.service';
 import { PumpFunService } from 'src/app/pump-fun.service';
 import { JupiterService } from 'src/app/jupiter.service';
-import { debounceTime } from 'rxjs/operators';
+import { debounceTime, switchMap } from 'rxjs/operators';
 import BN from 'bn.js';
 import { animate, style, transition, trigger } from '@angular/animations';
 import { EventsService } from 'src/app/events.service';
+import { NotificationService } from 'src/app/notification.service';
 
 interface Token {
   symbol: string;
@@ -26,7 +27,6 @@ interface Token {
   selector: 'app-swap',
   templateUrl: './swap.component.html',
   styleUrls: ['./swap.component.scss'],
-  // Dans ton component
   animations: [
     trigger('fadeInOut', [
       transition(':enter', [
@@ -38,16 +38,15 @@ interface Token {
       ])
     ])
   ]
-
 })
 export class SwapComponent implements OnInit, OnDestroy {
   @Input() coinId: string = '';
   @Input() token!: Token;
 
   settings = {
-    slippageTolerance: 25, // valeur par défaut
-    networkFee: 0.003, // valeur par défaut
-    priorityTip: 0.0001 // valeur par défaut
+    slippageTolerance: 15, // default value (basis points)
+    networkFee: 0.003,     // default value
+    priorityTip: 0.0001    // default value
   };
 
   settingsForm: FormGroup | any;
@@ -66,11 +65,11 @@ export class SwapComponent implements OnInit, OnDestroy {
   tradeTypes: ('buy' | 'sell')[] = ['buy', 'sell'];
   quickAmounts = [0.2, 0.5, 1];
   saveAmount: number = 0;
-  // Dans la classe SwapComponent
-  quickAmountSell = [25, 50, 100]; // Représente les pourcentages pour le mode sell
+  quickAmountSell = [25, 50, 100]; // Represents percentages for sell mode
   openModal = false;
   loadingSwap = false;
-  baseNetworkFee: number = 0.003; // Base Solana network fee
+  transactionInProgress = false;
+  baseNetworkFee: number = 0.0005; // Base Solana network fee
   selectedFeeLevel: string = 'High';
   networkFeeLevels: any = [
     { name: 'Best', multiplier: 1, successRate: 75 },
@@ -82,11 +81,12 @@ export class SwapComponent implements OnInit, OnDestroy {
   private priceSubscription?: Subscription;
   private formSubscription?: Subscription;
   private walletSubscription?: Subscription;
+  private balanceSubscription?: Subscription;
   private addressSubscription?: Subscription;
-  private subscriptionSwap?: Subscription;
+  private transactionSubscription?: Subscription;
+
   @Input() set curve(value: any) {
     if (value && value !== this.curve) {
-      console.log(value);
       value = {
         ...value,
         virtualTokenReserves: BigInt(value.virtualTokenReserves),
@@ -98,9 +98,11 @@ export class SwapComponent implements OnInit, OnDestroy {
       this._curve = value;
     }
   }
+
   get curve(): any {
     return this._curve;
   }
+
   private _curve: any = 0;
 
   constructor(
@@ -109,7 +111,8 @@ export class SwapComponent implements OnInit, OnDestroy {
     private http: HttpClient,
     private pumpFunService: PumpFunService,
     public jupiterService: JupiterService,
-    private eventsService: EventsService
+    private eventsService: EventsService,
+    private notificationService: NotificationService
   ) {
     this.initForm();
     this.initSettingsForm();
@@ -133,7 +136,7 @@ export class SwapComponent implements OnInit, OnDestroy {
         priorityTip: this.settingsForm.value.priorityTip
       };
 
-      // Recalcule le montant attendu avec les nouveaux paramètres
+      // Recalculate expected amount with new parameters
       if (this.swapForm.get('amount')?.value) {
         this.calculateExpectedAmount(this.swapForm.get('amount')?.value);
       }
@@ -142,30 +145,29 @@ export class SwapComponent implements OnInit, OnDestroy {
     }
   }
 
-
   async checkCurve(mintAddress: string): Promise<void> {
     try {
-      const response = await fetch('http://localhost:3000/coin/bonding?refresh=true&mint=' + mintAddress, {
+      const response = await fetch('http://127.0.0.1:3000/coin/bonding?refresh=true&mint=' + mintAddress, {
         method: 'get'
-      })
+      });
 
-      const result = await response.json()
+      const result = await response.json();
 
       if (!result.success) {
-        throw new Error(result.error)
+        throw new Error(result.error);
       }
 
       this.curve = result.data;
-
     } catch (error) {
-      console.error('Error checking curve progress:', error)
-      throw error
+      console.error('Error checking curve progress:', error);
+      this.notificationService.showError('Failed to fetch token curve data');
+      throw error;
     }
   }
 
   resetSettings() {
     this.settingsForm.patchValue({
-      slippageTolerance: 25,
+      slippageTolerance: 1,
       networkFee: 0.000005,
       priorityTip: 0.01
     });
@@ -182,60 +184,55 @@ export class SwapComponent implements OnInit, OnDestroy {
   async fetchCurrentNetworkFee() {
     this.isLoading = true;
     try {
-      // Obtenir le blockhash le plus récent
+      // Get the most recent blockhash
       const { blockhash } = await this.solanaService.connection.getLatestBlockhash('confirmed');
 
-
-      // Générer des clés publiques aléatoires pour 'from' et 'to'
+      // Generate random public keys for 'from' and 'to'
       const dummyFrom = Keypair.generate().publicKey;
       const dummyTo = Keypair.generate().publicKey;
 
-      console.log('ici?')
-      // Créer l'instruction de transfert
+      // Create transfer instruction
       const transferInstruction = SystemProgram.transfer({
         fromPubkey: dummyFrom,
         toPubkey: dummyTo,
         lamports: 1000,
       });
 
-      // Créer un message v0
+      // Create a v0 message
       const messageV0 = new TransactionMessage({
         payerKey: dummyFrom,
         recentBlockhash: blockhash,
         instructions: [transferInstruction]
       }).compileToV0Message();
 
-      // Créer une transaction versionnée
+      // Create a versioned transaction
       const transaction = new VersionedTransaction(messageV0);
 
-      // Obtenir les frais
+      // Get fees
       const response = await this.solanaService.connection.getFeeForMessage(messageV0, 'confirmed');
 
       if (!response?.value) {
         throw new Error('Failed to get fee');
       }
 
-      // Convertir les frais en SOL
+      // Convert fees to SOL
       this.baseNetworkFee = response.value / LAMPORTS_PER_SOL;
 
-      console.log(this.baseNetworkFee);
-      // Mettre à jour le formulaire avec les nouveaux frais de base
+      // Update form with new base fees
       const currentLevel = this.networkFeeLevels.find((l: any) => l.name === this.selectedFeeLevel);
       if (currentLevel) {
         this.setNetworkFeeLevel(currentLevel);
       }
-
     } catch (error) {
       console.error('Error fetching network fee:', error);
-      // Revenir aux frais par défaut en cas d'erreur
-      this.baseNetworkFee = 0.000005;
+      // Revert to default fees in case of error
+      this.baseNetworkFee = 0.0005;
     } finally {
       this.isLoading = false;
     }
   }
 
-
-  // Fonction pour ajouter une priorité fee (optionnel)
+  // Function to add priority fee (optional)
   addPriorityFee(transaction: Transaction, microLamports: number) {
     transaction.add(
       ComputeBudgetProgram.setComputeUnitPrice({
@@ -257,8 +254,8 @@ export class SwapComponent implements OnInit, OnDestroy {
     return level ? level.successRate : 75;
   }
 
-
   async ngOnInit() {
+    // Subscribe to wallet connection status
     this.walletSubscription = this.solanaService.isConnected$.subscribe(
       async (isConnected: boolean) => {
         this.isConnected = isConnected;
@@ -268,14 +265,23 @@ export class SwapComponent implements OnInit, OnDestroy {
           this.solBalance = 0;
           this.tokenBalance = 0;
         }
-      })
+      });
 
-    this.subscriptionSwap = this.eventsService.transactionFinalized$.subscribe((signature: string) => {
+    // Subscribe to wallet balance changes
+    this.balanceSubscription = this.solanaService.balance$.subscribe(
+      (balance: number) => {
+        this.solBalance = balance;
+      }
+    );
+
+    // Subscribe to transaction finalization events
+    this.transactionSubscription = this.eventsService.transactionFinalized$.subscribe((signature: string) => {
       this.updateBalances();
       this.loadingSwap = false;
+      this.transactionInProgress = false;
     });
 
-
+    // Subscribe to wallet address changes
     this.addressSubscription = this.solanaService.session$.subscribe(
       (address: string) => {
         this.currentWalletAddress = address;
@@ -283,6 +289,7 @@ export class SwapComponent implements OnInit, OnDestroy {
       }
     );
 
+    // Subscribe to form value changes
     this.formSubscription = this.swapForm.get('amount')?.valueChanges
       .pipe(debounceTime(500))
       .subscribe(async (value: any) => {
@@ -293,83 +300,96 @@ export class SwapComponent implements OnInit, OnDestroy {
 
     await this.updateBalances();
     await this.fetchCurrentNetworkFee();
-    this.setNetworkFeeLevel({ name: 'Best', multiplier: 1, successRate: 75 })
+    this.setNetworkFeeLevel({ name: 'Best', multiplier: 1, successRate: 75 });
     this.settings.networkFee = this.settingsForm.value.networkFee;
-
   }
 
-
   async executeSwap() {
-    if (!this.isConnected || !this.currentQuote) {
+    if (!this.isConnected || !this.currentQuote || this.transactionInProgress) {
       return;
     }
 
     try {
       this.isLoading = true;
+      this.transactionInProgress = true;
+      this.loadingSwap = true;
+
       const amount = this.swapForm.get('amount').value;
-      const slippageBps = this.settings.slippageTolerance * 100; // Conversion en base points
+      const slippageBps = this.settings.slippageTolerance * 100; // Convert to basis points
+      const slippageDecimal = this.settings.slippageTolerance / 100; // Convert to decimal (0.01 for 1%)
       const priorityFee = this.settings.priorityTip;
-      const gazFee = this.settings.priorityTip;
-      const networkFee = this.settings.networkFee;
+      const gazFee = this.settings.networkFee;
+
+      let result;
 
       if (this.tradeType === 'buy') {
         if (this.token.source === 'https://pump.fun') {
+          // Refresh curve data
           await this.checkCurve(this.coinId);
           await this.pumpFunService.initializeBondingCurve(this.curve);
 
-          const slippageDecimal = slippageBps / 10000;
-          const result = await this.pumpFunService.pumpFunBuy(
+          // Use the retry version for PumpFun buy
+          result = await this.pumpFunService.pumpFunBuyWithRetry(
             this.coinId,
             amount,
             priorityFee,
             slippageDecimal,
-            networkFee
+            gazFee
           );
 
         } else {
+          // For Jupiter swaps, use the retry version
           const amountInLamports = Math.floor(amount * LAMPORTS_PER_SOL);
-          const buyResult = await this.jupiterService.buy(
+          result = await this.jupiterService.buy(
             "So11111111111111111111111111111111111111112",
             this.coinId,
             amountInLamports,
             slippageBps,
-            priorityFee
-          );
-          console.log('Jupiter Buy Result:', buyResult);
+            priorityFee);
+
         }
       } else {
+        // Sell logic
         if (this.token.source === 'https://pump.fun') {
+          // Refresh curve data
           await this.checkCurve(this.coinId);
           await this.pumpFunService.initializeBondingCurve(this.curve);
 
-          const slippageDecimal = slippageBps / 10000;
-          const result = await this.pumpFunService.pumpFunSell(
+          // Use the retry version for PumpFun sell
+          const tokenAmount = Math.floor(amount * Math.pow(10, this.token.decimals));
+          result = await this.pumpFunService.pumpFunSellWithRetry(
             this.coinId,
-            amount * Math.pow(10, this.token.decimals),
+            tokenAmount,
             priorityFee,
             slippageDecimal,
-            networkFee
+            gazFee
           );
-          console.log('PumpFun Sell Result:', result);
         } else {
+          // For Jupiter sells, use the retry version
           const amountInTokens = Math.floor(amount * Math.pow(10, this.token.decimals));
-          const sellResult = await this.jupiterService.sell(
+          result = await this.jupiterService.sell(
             this.coinId,
             "So11111111111111111111111111111111111111112",
             amountInTokens,
-            slippageBps,
-            priorityFee
-          );
-          console.log('Jupiter Sell Result:', sellResult);
+            slippageBps
+            , priorityFee);
         }
       }
 
-      this.swapForm.reset();
-      this.loadingSwap = true;
+      if (result && result.confirmed) {
+        this.notificationService.showSuccess('Transaction submitted! You can safely navigate away.');
+        this.swapForm.reset();
+      } else {
+        this.notificationService.showError('Transaction may have failed. Please check your wallet.');
+        this.loadingSwap = false;
+        this.transactionInProgress = false;
+      }
 
     } catch (error: any) {
       console.error('Swap failed:', error);
-      this.showErrorNotification(error.message);
+      this.notificationService.showError(error.message || 'Transaction failed. Please try again.');
+      this.loadingSwap = false;
+      this.transactionInProgress = false;
     } finally {
       this.isLoading = false;
     }
@@ -386,15 +406,15 @@ export class SwapComponent implements OnInit, OnDestroy {
       }
 
       this.saveAmount = amount;
-      const slippageBps = Math.floor(this.settings.slippageTolerance * 100); // Conversion en base points
-      console.log(this.token.source);
+      const slippageBps = Math.floor(this.settings.slippageTolerance * 100); // Convert to basis points
+
       if (this.token.source === 'https://pump.fun') {
-        // Logique pour PumpFun
+        // PumpFun logic
         await this.pumpFunService.initializeBondingCurve(this.curve);
 
         if (this.tradeType === 'buy') {
           const solInBN = new BN(Math.floor(amount * LAMPORTS_PER_SOL));
-          const quote = await this.pumpFunService.getBuyQuote(solInBN, slippageBps);
+          const quote = await this.pumpFunService.getBuyQuote(solInBN);
 
           if (quote) {
             const expectedAmount = Number(quote.amountOut) / Math.pow(10, this.token.decimals);
@@ -404,12 +424,11 @@ export class SwapComponent implements OnInit, OnDestroy {
             this.minimumReceived = Number(quote.minAmountOut) / Math.pow(10, this.token.decimals);
           }
         } else {
-          // Pour le mode sell, on convertit le pourcentage en montant réel
+          // For sell mode, we convert percentage to actual amount
           const tokenAmount = Math.floor(amount * Math.pow(10, this.token.decimals));
-          const quote = await this.pumpFunService.getSellQuote(new BN(tokenAmount), slippageBps);
+          const quote = await this.pumpFunService.getSellQuote(new BN(tokenAmount));
 
           if (quote) {
-            console.log(quote);
             const expectedAmount = Number(quote.amountOut) / LAMPORTS_PER_SOL;
             this.swapForm.patchValue({ expectedAmount }, { emitEvent: false });
 
@@ -422,15 +441,15 @@ export class SwapComponent implements OnInit, OnDestroy {
             const pricePerSol = Number(oneSolQuote.outAmount) / Math.pow(10, this.token.decimals);
             this.currentQuote = {
               ...quote,
-              pricePerSol, // Prix pour 1 SOL en tokens
-              expectedAmount // Montant réel attendu en SOL
+              pricePerSol, // Price for 1 SOL in tokens
+              expectedAmount // Expected amount in SOL
             };
             this.priceImpact = quote.priceImpact;
             this.minimumReceived = Number(quote.minAmountOut) / LAMPORTS_PER_SOL;
           }
         }
       } else {
-        // Logique pour Jupiter
+        // Jupiter logic
         const inputMint = this.tradeType === 'buy'
           ? "So11111111111111111111111111111111111111112"
           : this.coinId;
@@ -468,8 +487,8 @@ export class SwapComponent implements OnInit, OnDestroy {
           const pricePerSol = Number(oneSolQuote.outAmount) / Math.pow(10, this.token.decimals);
           this.currentQuote = {
             ...quote,
-            pricePerSol, // Prix pour 1 SOL en tokens
-            expectedAmount // Montant réel attendu en SOL
+            pricePerSol, // Price for 1 SOL in tokens
+            expectedAmount // Expected amount
           };
           this.priceImpact = quote.priceImpactPct;
           this.minimumReceived = expectedAmount * (1 - slippageBps / 10000);
@@ -485,8 +504,6 @@ export class SwapComponent implements OnInit, OnDestroy {
   }
 
   async updateBalances() {
-
-    console.log('update balances');
     try {
       if (!this.currentWalletAddress) {
         this.solBalance = 0;
@@ -496,12 +513,11 @@ export class SwapComponent implements OnInit, OnDestroy {
 
       const publicKey = new PublicKey(this.currentWalletAddress);
 
-      // Get SOL balance
+      // Get SOL balance - This is actually handled by the subscription now,
+      // but keeping it for initial load
       const solBalanceInLamports = await this.solanaService.connection.getBalance(publicKey);
       this.solBalance = solBalanceInLamports / LAMPORTS_PER_SOL;
 
-
-      console.log(this.solBalance);
       // Get token balance
       if (this.coinId) {
         try {
@@ -529,21 +545,20 @@ export class SwapComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Ajouter cette méthode dans la classe SwapComponent
   async onAmountChange(event: any) {
     const amount = event.target.value;
 
     if (this.tradeType === 'sell' && this.tokenBalance > 0) {
-      // Calcule le pourcentage pour le mode sell
+      // Calculate percentage for sell mode
       const percentage = (amount / this.tokenBalance) * 100;
-      // Met à jour le montant sélectionné si c'est un des pourcentages rapides
-      if (this.quickAmounts.includes(Math.round(percentage))) {
+      // Update selected amount if it's one of the quick percentages
+      if (this.quickAmountSell.includes(Math.round(percentage))) {
         this.selectedAmount = Math.round(percentage);
       } else {
         this.selectedAmount = 0;
       }
     } else {
-      // Mode buy - comportement existant
+      // Buy mode - existing behavior
       if (this.quickAmounts.includes(Number(amount))) {
         this.selectedAmount = Number(amount);
       } else {
@@ -575,17 +590,17 @@ export class SwapComponent implements OnInit, OnDestroy {
     this.selectedAmount = percentage;
 
     if (this.tradeType === 'sell') {
-      // Calcule le montant basé sur le pourcentage du solde de tokens
+      // Calculate amount based on percentage of token balance
       const amount = (percentage / 100) * this.tokenBalance;
       this.swapForm.patchValue({ amount }, { emitEvent: true });
     } else {
-      // Mode buy - utilise les montants fixes comme avant
+      // Buy mode - use fixed amounts as before
       this.swapForm.patchValue({ amount: percentage }, { emitEvent: true });
     }
   }
 
   validateAmount(amount: number): { [key: string]: any } | null {
-    if (!amount) return null; // Change this from {required: true} to null
+    if (!amount) return null;
     if (isNaN(amount)) return { notANumber: true };
     if (amount <= 0) return { positive: true };
 
@@ -608,7 +623,7 @@ export class SwapComponent implements OnInit, OnDestroy {
 
   formatImpact(value: number) {
     if (!value || isNaN(value)) return '0';
-    return value
+    return value.toFixed(2) + '%';
   }
 
   formatMinimumReceived(value: number): string {
@@ -623,19 +638,10 @@ export class SwapComponent implements OnInit, OnDestroy {
     }).format(value);
   }
 
-  private showSuccessNotification(message: string) {
-    // Implémentez votre système de notification ici
-    console.log('Success:', message);
-  }
-
-  private showErrorNotification(message: string) {
-    // Implémentez votre système de notification ici
-    console.error('Error:', message);
-  }
-
   getActionButtonText(): string {
     if (!this.isConnected) return 'Connect Wallet';
-    if (this.isLoading) return 'Transaction in progress...';
+    if (this.loadingSwap) return 'Transaction in progress...';
+    if (this.isLoading) return 'Calculating...';
 
     const amountControl = this.swapForm.get('amount');
 
@@ -648,6 +654,15 @@ export class SwapComponent implements OnInit, OnDestroy {
     return `${this.tradeType === 'buy' ? 'Buy' : 'Sell'} ${this.token?.symbol}`;
   }
 
+  isActionButtonDisabled(): boolean {
+    return this.loadingSwap ||
+      this.isLoading ||
+      !this.isConnected ||
+      !this.swapForm.get('amount')?.value ||
+      this.swapForm.invalid ||
+      !this.currentQuote ||
+      this.transactionInProgress;
+  }
 
   getCurrencyIcon(): string {
     return this.tradeType === 'buy'
@@ -660,8 +675,7 @@ export class SwapComponent implements OnInit, OnDestroy {
     this.formSubscription?.unsubscribe();
     this.walletSubscription?.unsubscribe();
     this.addressSubscription?.unsubscribe();
-    this.subscriptionSwap?.unsubscribe();
-
+    this.transactionSubscription?.unsubscribe();
+    this.balanceSubscription?.unsubscribe();
   }
 }
-

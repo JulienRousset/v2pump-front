@@ -13,6 +13,11 @@ import { ShortenNumberPipe } from '../shorten-number.pipe';
 import { ModalSearchComponent } from './components/modal-search/modal-search.component';
 import { ModalComponent } from './components/modal/modal.component';
 import { DropdownComponent } from './components/dropdown/dropdown.component';
+import { EditAvatarComponent } from './components/edit-avatar/edit-avatar.component';
+import { SafePipe } from '../safe.pipe';
+import { AvatarConfigComponent } from './components/edit-avatar/avatar-config/avatar-config.component';
+import { AutoResizeTextDirective } from './directives/auto-resize-text.directive';
+import { AvatarComponent } from './components/avatar/avatar.component';
 
 const COMPONENTS = [
   FooterComponent,
@@ -22,7 +27,12 @@ const COMPONENTS = [
   ShortenNumberPipe,
   ModalSearchComponent,
   ModalComponent,
-  DropdownComponent
+  DropdownComponent,
+  EditAvatarComponent,
+  AvatarConfigComponent,
+  SafePipe,
+  AutoResizeTextDirective,
+  AvatarComponent
 ]
 
 @NgModule({

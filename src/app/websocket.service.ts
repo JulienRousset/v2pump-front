@@ -30,7 +30,6 @@ export class WebsocketService {
 
   connect(sub:any): void {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
-      console.log('WebSocket déjà connecté');
       return;
     }
 
@@ -38,7 +37,6 @@ export class WebsocketService {
     this.socket.binaryType = 'arraybuffer';
 
     this.socket.onopen = () => {
-      console.log('WebSocket connecté');
       this.connectionStatus$.next(true);
       
       // Envoyer le paquet CONNECT
@@ -51,13 +49,7 @@ export class WebsocketService {
       } else {
         try {
           const data = JSON.parse(event.data);
-          console.log('Message reçu:', data);
           this.messages$.next(data);
-
-          // Vérifier si c'est une réponse +OK après CONNECT
-          if (data === '+OK') {
-            console.log('Connection NATS établie avec succès');
-          }
         } catch (error) {
           console.error('Erreur parsing message:', error);
         }
@@ -70,7 +62,6 @@ export class WebsocketService {
     };
 
     this.socket.onclose = () => {
-      console.log('WebSocket déconnecté');
       this.connectionStatus$.next(false);
     };
   }
@@ -78,7 +69,6 @@ export class WebsocketService {
   private subscribeToNewCoins(sub:any): void {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
       const subMessage = 'SUB ' + sub + '\r\n';
-      console.log('Envoi de la souscription:', subMessage);
       this.socket.send(subMessage);
     }
   }
@@ -93,7 +83,6 @@ export class WebsocketService {
       // Construire le message CONNECT au format NATS
       const connectString = `CONNECT ${JSON.stringify(this.connectParams)}\r\n`;
       
-      console.log('Sending CONNECT packet:', connectString);
       this.socket.send(connectString);
 
       // Envoyer PING après CONNECT pour vérifier la connexion
@@ -108,7 +97,6 @@ export class WebsocketService {
   subscribe(subject: string): void {
     if (this.socket && this.socket.readyState === WebSocket.OPEN) {
       const subMessage = `SUB ${subject} ${Date.now()}\r\n`;
-      console.log('Subscribing to:', subject);
       this.socket.send(subMessage);
     }
   }

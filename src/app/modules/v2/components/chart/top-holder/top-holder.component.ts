@@ -58,7 +58,7 @@ export class TopHolderComponent implements OnInit {
     });
   }
   ngOnInit() {
-    // this.fetchHolders();
+    this.fetchHolders();
   }
 
   private async processUpdate() {
@@ -69,13 +69,11 @@ export class TopHolderComponent implements OnInit {
 
     try {
       this.isUpdating = true;
-      console.log('Début de la mise à jour des holders:', new Date().toISOString());
       await this.fetchHolders();
     } catch (error) {
       console.error('Error updating holders:', error);
     } finally {
       this.isUpdating = false;
-      console.log('Fin de la mise à jour des holders:', new Date().toISOString());
 
       if (this.updateQueued) {
         this.updateQueued = false;
@@ -89,11 +87,18 @@ export class TopHolderComponent implements OnInit {
   private triggerUpdate() {
   }
 
+  getRowClass(index: number): string {
+    if (index === 0) return 'top-holder-1';
+    if (index === 1) return 'top-holder-2';
+    if (index === 2) return 'top-holder-3';
+    return '';
+  }
+
   fetchHolders() {
     this.error = null;
 
     return new Promise((resolve, reject) => {
-      this.http.get<HolderResponse>(`https://souctnjaypcptqpeeuhh.supabase.co/functions/v1/top-holder?mint=${this.coinId}`)
+      this.http.get<HolderResponse>(`http://127.0.0.1:3000/coin/topholders?mint=${this.coinId}`)
         .subscribe({
           next: (response) => {
             if (response.status === 'success') {

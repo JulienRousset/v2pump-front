@@ -1,0 +1,138 @@
+<div class="bg-gray-900  border-gray-700/50 overflow-hidden">
+  <!-- Header -->
+  <div class="flex items-center h-9 px-3 border-b border-gray-700/50">
+    <div class="text-[11px] text-gray-400 font-medium tracking-wide uppercase">Avatar Configurator</div>
+  </div>
+
+  <div class="p-4 space-y-3"> <!-- Réduit l'espacement vertical -->
+    <!-- Wrapper Shape Section -->
+    <div class="mb-3">
+      <div class="flex items-center justify-between mb-4">
+        <div class="text-[11px] text-gray-400 font-medium tracking-wide uppercase">Shape Style</div>
+      </div>
+
+      <div class="bg-gray-800/40 rounded-xl border border-gray-700/50 p-3">
+        <div class="grid grid-cols-4 gap-2">
+          <button *ngFor="let shape of wrapperShapes" 
+                  (click)="updateWrapperShape(shape)"
+                  [class.bg-gradient-to-br]="currentAvatar.wrapperShape === shape"
+                  [class.from-indigo-500]="currentAvatar.wrapperShape === shape"
+                  [class.to-purple-500]="currentAvatar.wrapperShape === shape"
+                  [class.border-indigo-500]="currentAvatar.wrapperShape === shape"
+                  class="aspect-square rounded-xl bg-gray-800/80 border border-gray-700/50 
+                         transition-all duration-200 group relative overflow-hidden
+                         hover:border-gray-600/50 hover:bg-gray-800/90">
+            <div class="w-full h-full flex items-center justify-center p-2.5">
+              <div [class]="'shape ' + shape"></div>
+            </div>
+            <!-- Hover Effect -->
+            <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent 
+                        opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Colors Section -->
+    <div style="margin-bottom: 20px;">
+      <div class="flex items-center justify-between mb-4">
+        <div class="text-[11px] text-gray-400 font-medium tracking-wide uppercase">Colors</div>
+      </div>
+
+      <!-- Background Color -->
+      <div class="mb-3">
+        <div class="flex flex-wrap gap-1.5">
+          <button *ngFor="let color of backgroundColors"
+                  (click)="updateBackgroundColor(color)"
+                  [style.background]="color"
+                  class="w-6 h-6 rounded-full transition-all duration-200 relative
+                         hover:shadow-[0_0_10px_rgba(99,102,241,0.3)]">
+            <div *ngIf="currentAvatar.background.color === color"
+                 class="absolute inset-0 rounded-full ring-2 ring-offset-2 ring-offset-gray-800 ring-indigo-500">
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Border Color -->
+      <div class="mb-3">
+        <div class="flex flex-wrap gap-1.5">
+          <button *ngFor="let color of borderColors"
+                  (click)="updateBorderColor(color)"
+                  [style.background]="color"
+                  class="w-6 h-6 rounded-full transition-all duration-200 relative
+                         hover:shadow-[0_0_10px_rgba(99,102,241,0.3)]">
+            <div *ngIf="currentAvatar.background.borderColor === color"
+                 class="absolute inset-0 rounded-full ring-2 ring-offset-2 ring-offset-gray-800 ring-indigo-500">
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Widget Configurations -->
+    <ng-container *ngFor="let widget of configurations">
+      <div style="margin-bottom: 15px;">
+        <!-- En-tête de section -->
+        <div class="flex items-center justify-between mb-3">
+          <div class="text-[11px] text-gray-400 font-medium tracking-wide uppercase">{{ widget.title }}</div>
+        </div>
+
+        <!-- Widget Colors -->
+        <div *ngIf="widget.colors" class="mb-3">
+          <div class="flex flex-wrap gap-1.5">
+            <button *ngFor="let color of widget.colors"
+                    (click)="updateWidgetColor(widget.type, color)"
+                    [style.background]="color"
+                    class="w-6 h-6 rounded-full transition-all duration-200 relative
+                           hover:shadow-[0_0_10px_rgba(99,102,241,0.3)]">
+              <div *ngIf="getWidgetColor(widget.type) === color"
+                   class="absolute inset-0 rounded-full ring-2 ring-offset-2 ring-offset-gray-800 ring-indigo-500">
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Shapes Grid -->
+        <div class="bg-gray-800/40 rounded-xl border border-gray-700/50 p-3">
+          <div class="grid grid-cols-4 gap-2">
+            <button *ngFor="let shape of widget.options"
+                    (click)="updateWidgetShape(widget.type, shape)"
+                    [class.bg-gradient-to-br]="isShapeSelected(widget.type, shape)"
+                    [class.from-indigo-500]="isShapeSelected(widget.type, shape)"
+                    [class.to-purple-500]="isShapeSelected(widget.type, shape)"
+                    [class.border-indigo-500]="isShapeSelected(widget.type, shape)"
+                    class="aspect-square rounded-xl bg-gray-800/80 border border-gray-700/50 
+                           transition-all duration-200 group relative overflow-hidden
+                           hover:border-gray-600/50 hover:bg-gray-800/90">
+              <div class="w-full h-full flex items-center justify-center p-2.5"
+                   [innerHTML]="(getShapePreview(widget.type, shape) | async) || ''">
+              </div>
+              
+              <!-- Selected Indicator -->
+              <div *ngIf="isShapeSelected(widget.type, shape)"
+                   class="absolute inset-0 ring-1 ring-inset ring-indigo-500/50">
+              </div>
+              
+              <!-- Hover Effect -->
+              <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent 
+                          opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- Info box -->
+    <div class="bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-3">
+      <div class="flex items-center gap-2">
+        <span class="text-[11px] text-indigo-400 font-medium tracking-wide uppercase">Preview</span>
+      </div>
+      <p class="text-xs text-indigo-300/80 mt-1">
+        Create your unique avatar with our advanced customization options
+      </p>
+    </div>
+  </div>
+</div>

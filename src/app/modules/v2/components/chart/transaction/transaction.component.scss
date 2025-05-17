@@ -1,0 +1,56 @@
+
+          /* Styles pour la scrollbar personnalisée */
+          .scrollbar-thin::-webkit-scrollbar {
+            width: 4px;
+          }
+          
+          .scrollbar-track-transparent::-webkit-scrollbar-track {
+            background: transparent;
+          }
+          
+          .scrollbar-thumb-indigo-600::-webkit-scrollbar-thumb {
+            background: rgba(79, 70, 229, 0.3);
+            border-radius: 4px;
+          }
+          
+          .scrollbar-thumb-indigo-600::-webkit-scrollbar-thumb:hover {
+            background: rgba(79, 70, 229, 0.6);
+          }
+          irtual-scroll {
+            display: block;
+            width: 100%;
+          }
+          
+          table {
+            border-collapse: collapse;
+            border-spacing: 0;
+           
+            
+            text-align: left;
+            
+             display: flex;
+            flex-flow: column;
+            width: 100%;
+          }
+          
+          thead {
+            flex: 0 0 auto;
+            width: 100%;
+          }
+          
+          tbody {
+            width: 100%;
+                /* body takes all the remaining available space */
+            flex: 1 1 auto;
+            display: block;
+          }
+          
+          
+          table tbody tr {
+            width: 100%;
+          }
+          table thead,
+          table tbody tr {
+            display: table;
+            table-layout: fixed;
+          }

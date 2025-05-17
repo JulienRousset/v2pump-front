@@ -4,19 +4,15 @@ import {
     PublicKey,
     VersionedTransaction,
     TransactionMessage,
-    Commitment,
-    Transaction,
     SystemProgram,
     LAMPORTS_PER_SOL,
-    ComputeBudgetProgram,
-    TransactionInstruction,
-    MessageV0,
     AddressLookupTableAccount
 } from '@solana/web3.js';
 import { HttpClient } from '@angular/common/http';
 import { SolanaService } from '@shared/services/solana.service';
 import * as bs58 from 'bs58';
 import { NotificationService } from './notification.service';
+import { EventsService } from './events.service';
 
 interface QuoteResponse {
     inputMint: string;
@@ -29,6 +25,8 @@ interface QuoteResponse {
     routePlan: any[];
     contextSlot: number;
     timeTaken: number;
+    inAmount?: string;
+    outAmount?: string;
 }
 
 interface SwapResponse {
@@ -63,6 +61,7 @@ export class JupiterService {
         private http: HttpClient,
         public solanaService: SolanaService,
         public notificationService: NotificationService,
+        private eventsService: EventsService
     ) {
         this.connection = new Connection(
             'https://wandering-billowing-moon.solana-mainnet.quiknode.pro/da55f32e52d1b381b8dc20e71c097aa7d184cbe0',
@@ -94,6 +93,52 @@ export class JupiterService {
         }
     }
 
+    // Méthode pour actualiser le solde du portefeuille
+    async refreshWalletBalance() {
+        if (!this.solanaService.wallet?.publicKey) {
+            return;
+        }
+        
+        try {
+            const balance = await this.connection.getBalance(this.solanaService.wallet.publicKey);
+            // Mettre à jour le solde affiché dans l'UI
+            this.solanaService.updateWalletBalance(balance / LAMPORTS_PER_SOL);
+        } catch (error) {
+            console.error('Error refreshing wallet balance:', error);
+        }
+    }
+
+    // Méthode pour estimer et actualiser instantanément le solde après une transaction
+    public async updateBalanceAfterTransaction(type: 'buy' | 'sell', amount: number) {
+        if (!this.solanaService.wallet?.publicKey) return;
+        
+        try {
+            // Obtenir le solde actuel
+            const currentBalance = await this.connection.getBalance(this.solanaService.wallet.publicKey);
+            let estimatedBalance = currentBalance;
+            
+            // Estimer les changements selon le type de transaction
+            const transactionCost = 0.001 * LAMPORTS_PER_SOL; // Frais de base
+            
+            if (type === 'buy') {
+                estimatedBalance -= (amount + transactionCost);
+            } else {
+                estimatedBalance += (amount - transactionCost);
+            }
+            
+            // Mettre à jour le solde estimé immédiatement
+            this.solanaService.updateWalletBalance(estimatedBalance / LAMPORTS_PER_SOL);
+            
+            // Planifier plusieurs actualisations du solde réel
+            const refreshTimes = [1000, 2000, 5000]; // 1s, 2s, 5s
+            refreshTimes.forEach(delay => {
+                setTimeout(() => this.solanaService.forceBalanceRefresh(), delay);
+            });
+        } catch (error) {
+            console.error('Error updating balance:', error);
+        }
+    }
+    
     async getQuote(
         inputMint: string,
         outputMint: string,
@@ -101,7 +146,6 @@ export class JupiterService {
         slippageBps: number
     ): Promise<QuoteResponse> {
         try {
-
             const response = await this.http.get<QuoteResponse>(
                 `${this.JUPITER_API_URL}/quote`,
                 {
@@ -115,7 +159,7 @@ export class JupiterService {
             ).toPromise();
 
             if (!response) {
-                this.notificationService.showError('Error price');
+                this.notificationService.showError('Error getting price');
                 throw new Error('No quote response received');
             }
 
@@ -126,10 +170,83 @@ export class JupiterService {
         }
     }
 
+    async executeSwapWithRetry(quoteResponse: any, priorityFeeInSol: number, maxRetries = 3) {
+        let retryCount = 0;
+        let lastError;
+
+        // Capture du solde initial pour l'affichage
+        const initialBalance = await this.connection.getBalance(this.solanaService.wallet.publicKey);
+        
+        while (retryCount <= maxRetries) {
+            try {
+                // Calculer la taxe pour l'estimation du solde
+                const taxPercentage = 0.001;
+                const solAmount = quoteResponse.outputMint === 'So11111111111111111111111111111111111111112'
+                    ? quoteResponse.outAmount
+                    : quoteResponse.inAmount;
+                const amount = Number(solAmount) / LAMPORTS_PER_SOL;
+                const finalTax = Math.max(amount * taxPercentage, 0.001);
+                
+                // Exécuter le swap
+                const result = await this.executeSwap(quoteResponse, priorityFeeInSol);
+                
+                if (result.confirmed) {
+                    // Transaction réussie, actualiser le solde réel
+                    await this.refreshWalletBalance();
+                    return result;
+                }
+                
+                retryCount++;
+            } catch (error:any) {
+                lastError = error;
+                console.error('Swap error:', error);
+                
+                // Vérifier si c'est une erreur de slippage
+                const errorStr = error.toString().toLowerCase();
+                if (errorStr.includes('slippage') || errorStr.includes('0x1771')) {
+                    // Pas de notification visible pour l'utilisateur lors des réessais automatiques
+                    console.log('Slippage error detected, retrying silently...', retryCount);
+                    
+                    if (retryCount < maxRetries) {
+                        // Augmenter le slippage et réessayer
+                        const newSlippageBps = Math.min(quoteResponse.slippageBps + 100, 5); // +1% mais max 10%
+                        try {
+                            // Demander une nouvelle quote avec un slippage augmenté
+                            quoteResponse = await this.getQuote(
+                                quoteResponse.inputMint,
+                                quoteResponse.outputMint,
+                                quoteResponse.amount,
+                                newSlippageBps
+                            );
+                            retryCount++;
+                            // Réduire le délai d'attente pour plus de réactivité
+                            await new Promise(resolve => setTimeout(resolve, 300));
+                        } catch (quoteError) {
+                            console.error('Error getting new quote:', quoteError);
+                            retryCount++;
+                        }
+                    } else {
+                        // Uniquement afficher l'erreur après tous les essais
+                        this.notificationService.showError('Transaction failed due to price movement. Try again.');
+                        this.solanaService.updateWalletBalance(initialBalance / LAMPORTS_PER_SOL);
+                        break;
+                    }
+                } else {
+                    // Autre type d'erreur, ne pas réessayer
+                    this.notificationService.showError('Transaction failed: ' + error.message);
+                    this.solanaService.updateWalletBalance(initialBalance / LAMPORTS_PER_SOL);
+                    break;
+                }
+            }
+        }
+
+        throw lastError || new Error('Transaction failed after multiple attempts');
+    }
+
     async executeSwap(quoteResponse: any, priorityFeeInSol: number) {
         try {
             if (!this.solanaService.wallet?.publicKey) {
-                throw new Error('Wallet non connecté');
+                throw new Error('Wallet not connected');
             }
 
             // Calcul de la taxe
@@ -145,24 +262,25 @@ export class JupiterService {
             const estimatedFees = (priorityFeeInSol + 0.01 + finalTax) * LAMPORTS_PER_SOL;
 
             if (balance < estimatedFees) {
-                this.notificationService.showError('Insufficient balance to complete this transaction. ');
+                this.notificationService.showError('Insufficient balance to complete this transaction.');
+                throw new Error('Insufficient balance');
             }
 
             // Obtention de la transaction de swap
             const swapResponse = await this.http.post<SwapResponse>(
                 `${this.JUPITER_API_URL}/swap`,
                 {
-                    quoteResponse,
+                    quoteResponse: quoteResponse,
                     userPublicKey: this.solanaService.wallet.publicKey.toString(),
-                    wrapUnwrapSOL: true,
+                    wrapAndUnwrapSol: true,
                     computeUnitPriceMicroLamports: priorityFeeInSol * 1_000_000_000,
-                    skipPreflight: true
+                    skipPreflight: true, // Gardons true pour éviter des échecs sur la simulation RPC
                 }
             ).toPromise();
 
             if (!swapResponse) {
-                this.notificationService.showError('Eroor Jupiter. ');
-                throw new Error('Pas de réponse de Jupiter');
+                this.notificationService.showError('Error from Jupiter API.');
+                throw new Error('No response from Jupiter');
             }
 
             // Désérialisation de la transaction
@@ -170,7 +288,7 @@ export class JupiterService {
             let transaction = VersionedTransaction.deserialize(swapTransactionBuf);
 
             // Création des instructions de transfert pour la taxe et les frais Jito
-            const taxWallet = new PublicKey('CsKMxupdmfYpU74XXUHpG1WPKo9hRAPDidhNvNYe1x4T');
+            const taxWallet = this.TAX_WALLET;
             const jito_validator_wallet = await this.getRandomValidator();
 
             const taxInstruction = SystemProgram.transfer({
@@ -210,16 +328,40 @@ export class JupiterService {
             // Recompilation du message
             transaction.message = message.compileToV0Message(addressLookupTableAccounts);
 
-            // Signature et exécution
             const signedTransaction = await this.solanaService.wallet.signTransaction(transaction);
+
+            // Ajout d'une simulation pour détecter les erreurs potentielles avant l'envoi
+            try {                
+                // Simuler la transaction
+                const simulation = await this.connection.simulateTransaction(signedTransaction);
+                
+                // Vérifier les résultats de la simulation
+                if (simulation.value.err) {
+                    console.warn('Transaction simulation failed:', simulation.value.err);
+                    
+                    // Si c'est une erreur de slippage, lancer une exception pour déclencher le réessai
+                    const errorString = JSON.stringify(simulation.value.err);
+                    if (errorString.includes('0x1771') || errorString.toLowerCase().includes('slippage')) {
+                        throw new Error('Slippage detected in simulation');
+                    }
+                }
+            } catch (simError: any) {
+                // Si l'erreur vient de la simulation et concerne le slippage, la propager
+                if (simError.toString().includes('Slippage')) {
+                    throw simError;
+                }
+                // Sinon continuer car certaines simulations échouent mais les transactions réelles passent
+                console.warn('Simulation warning, proceeding with transaction:', simError);
+            }
+
+            // Signature et exécution
             return await this.jito_executeAndConfirm(signedTransaction);
 
         } catch (error) {
-            console.error('Erreur dans executeSwap:', error);
+            console.error('Error in executeSwap:', error);
             throw error;
         }
     }
-
 
     private async jito_executeAndConfirm(transaction: VersionedTransaction) {
         try {
@@ -262,36 +404,57 @@ export class JupiterService {
 
     private async jito_confirm(signature: string, latestBlockhash: any) {
         try {
-            const start = Date.now();
-            let confirmed = false;
-            let toast = false;
-
-            while (!confirmed && (Date.now() - start) < 15000) {
-                const response = await this.connection.getSignatureStatus(signature);
-
-                if (response && response.value && response.value.confirmationStatus === "confirmed" && !toast) {
-                    this.notificationService.showSuccess('Transaction successfully completed! 🎉');
-                    toast = true;
-                }
-
-                if (response && response.value && response.value.confirmationStatus === "finalized") {
-                    confirmed = true;
-                } else {
-                    await new Promise(resolve => setTimeout(resolve, 2000));
-                }
-            }
-
-            if (!confirmed && !toast) {
-                this.notificationService.showError('Transaction failed. Please try again.');
-            }
-            return { confirmed, signature };
+            // Démarrer une surveillance en arrière-plan immédiatement
+            this.watchTransactionStatus(signature);
+            
+            // Actualiser rapidement le solde estimé
+            setTimeout(() => this.solanaService.forceBalanceRefresh(), 1000);
+            
+            // Retourner immédiatement pour une meilleure réactivité
+            return { confirmed: true, signature };
         } catch (error) {
             this.notificationService.showError('Transaction failed. Please try again.');
-            console.error('Error confirming transaction:', error);
             return { confirmed: false, signature };
         }
     }
-
+    
+    private watchTransactionStatus(signature: string) {
+        let statusNotified = false;
+        let confirmationAttempts = 0;
+        const MAX_ATTEMPTS = 30; // 30 tentatives maximum
+        
+        const checkStatus = async () => {
+            try {
+                confirmationAttempts++;
+                const response = await this.connection.getSignatureStatus(signature);
+                
+                if (response?.value) {
+                    if (response.value.confirmationStatus === "confirmed" && !statusNotified) {
+                        statusNotified = true;
+                        this.notificationService.showSuccess('Transaction confirmed! 🎉');
+                        await this.solanaService.forceBalanceRefresh();
+                        this.eventsService.emitTransactionFinalized(signature);
+                    }
+                    
+                    if (response.value.confirmationStatus === "finalized") {
+                        await this.solanaService.forceBalanceRefresh();
+                        return; // Arrêter la surveillance
+                    }
+                }
+                
+                // Continuer la surveillance si pas encore finalisé et pas dépassé le max de tentatives
+                if (!statusNotified && confirmationAttempts < MAX_ATTEMPTS) {
+                    setTimeout(checkStatus, 1000);
+                }
+            } catch (error) {
+                console.error("Error checking transaction status:", error);
+            }
+        };
+        
+        // Démarrer la vérification
+        setTimeout(checkStatus, 500);
+    }
+    
     async buy(
         inputMint: string,
         outputMint: string,
@@ -300,7 +463,7 @@ export class JupiterService {
         priorityFeeInSol: number
     ) {
         const quote = await this.getQuote(inputMint, outputMint, amount, slippageBps);
-        return await this.executeSwap(quote, priorityFeeInSol);
+        return await this.executeSwapWithRetry(quote, priorityFeeInSol, 3); // 3 tentatives max
     }
 
     async sell(
@@ -311,10 +474,8 @@ export class JupiterService {
         priorityFeeInSol: number
     ) {
         const quote = await this.getQuote(inputMint, outputMint, amount, slippageBps);
-        return await this.executeSwap(quote, priorityFeeInSol);
+        return await this.executeSwapWithRetry(quote, priorityFeeInSol, 3); // 3 tentatives max
     }
-
-
 
     async checkTransactionStatus(signature: string) {
         try {

@@ -1,9 +1,9 @@
 // chat.component.ts
-import { Component, Input, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy, ViewChild, ElementRef, Output, EventEmitter, HostListener } from '@angular/core';
 import { SolanaService } from '@shared/services/solana.service';
 import { IPageInfo } from 'ngx-virtual-scroller';
-import { Observable, Subject, Subscription } from 'rxjs';
-import { debounceTime, filter, take } from 'rxjs/operators';
+import { EMPTY, Observable, of, Subject, Subscription } from 'rxjs';
+import { debounceTime, distinctUntilChanged, filter, switchMap, take } from 'rxjs/operators';
 import { ChatMessage, ChatService } from 'src/app/chat.service';
 import { NotificationService } from 'src/app/notification.service';
 import { TokenService } from 'src/app/token.service';
@@ -16,12 +16,19 @@ import { TokenService } from 'src/app/token.service';
 export class ChatComponent implements OnInit, OnDestroy {
   @Input() coinId!: string;
   @ViewChild('scroll') chatscroll!: any;
+  @Output() sendEvent = new EventEmitter<any>();
+  @Input() avatarBottom!: any;
 
   public messages: any[] = [];
   public newMessage: string = '';
   public replyingTo: any | null = null;
   private subscription: Subscription | undefined;
   public isInitialLoad = true;
+  private isFirstLetter = true;
+  private lastMessageLength = 0;
+  private lastSentStatus = false;
+
+
   optionsDropdown = [
     { label: 'Ban 1 minute', value: 1 },
     { label: 'Ban 3 minutes', value: 3 },
@@ -56,14 +63,26 @@ export class ChatComponent implements OnInit, OnDestroy {
   public role = 'user';
   public optionSettings: any = [];
   private walletSubscription?: Subscription;
+  private messageSubject = new Subject<string>();
+  activeMenuMessageId: string | null = null;
+  pinnedMessageCollapsed: boolean = false;
+  messageOptionsOthers: string[] = ['Reply', 'Like'];
+  messageOptionsOthersAdmin: string[] = ['Reply', 'Like', 'Delete', 'Pin', 'Ban'];
+  messageOptionsSelf: string[] = ['Like', 'Delete'];
+  messageOptionsSelfAdmin: string[] = ['Like', 'Delete', 'Pin'];
+
 
   constructor(private chatService: ChatService, public solana: SolanaService, public tokenService: TokenService, public notificationService: NotificationService) { }
 
   async ngOnInit() {
+    // Modifiez la souscription au changement de connexion
     this.walletSubscription = this.solana.isConnected$.subscribe(
       async (isConnected: boolean) => {
-        if (isConnected && !this.isInitialLoad) {
-          // Réinitialisation des états
+        if (isConnected) {
+          // Déconnecter d'abord le websocket existant
+          this.chatService.disconnect();
+          
+          // Réinitialiser les états
           this.messages = [];
           this.newMessage = '';
           this.replyingTo = null;
@@ -72,18 +91,73 @@ export class ChatComponent implements OnInit, OnDestroy {
           this.isLoading = false;
           this.hasMoreMessages = true;
           this.scrollToBottomPending = false;
-          this.loadInitialMessages().then(() => {
-            setTimeout(() => {
-              this.scrollToBottom();
-              this.isInitialLoad = false;
-            }, 100);
-          });
+  
+          // Reconnecter avec le nouveau token
+          const token = this.solana.tokenService.getToken();
+          this.chatService.connectToCoin(this.coinId, token);
+  
+          // Recharger les messages
+          await this.loadInitialMessages();
+          setTimeout(() => {
+            this.scrollToBottom();
+          }, 100);
+        } else {
+          // Si déconnecté, fermer la connexion websocket
+          this.chatService.disconnect();
         }
-      })
+      }
+    );
 
     this.loadPinnedMessages();
 
-    console.log(this.solana._isInitialized.getValue());
+    this.messageSubject.pipe(
+      distinctUntilChanged(),
+      switchMap(message => {
+        const trimmedMessage = message.trim();
+        const hasContent = trimmedMessage.length > 0;
+        
+        // Si le statut d'écriture n'a pas changé, ne rien envoyer
+        if (this.lastSentStatus === hasContent) {
+          return EMPTY;
+        }
+    
+        // Si c'est la première lettre ou on passe de 1 à 0 caractère
+        if ((this.isFirstLetter && hasContent) || 
+            (this.lastMessageLength > 0 && !hasContent)) {
+          this.isFirstLetter = false;
+          this.lastMessageLength = trimmedMessage.length;
+          this.lastSentStatus = hasContent;
+          return of(hasContent);
+        }
+    
+        // Pour les lettres suivantes
+        this.lastMessageLength = trimmedMessage.length;
+        return of(hasContent).pipe(
+          debounceTime(300)
+        );
+      })
+    ).subscribe(isWriting => {
+      if (!this.solana.session?.id) {
+        console.error('User not authenticated');
+        return;
+      }
+    
+      const obj: any = {
+        type: 'writing_user',
+        coinId: this.coinId,
+        token: this.solana.tokenService.getToken(),
+        isWriting
+      }
+    
+      this.chatService.sendMessage(obj);
+    
+      // Réinitialiser quand on arrête d'écrire
+      if (!isWriting) {
+        this.isFirstLetter = true;
+        this.lastMessageLength = 0;
+      }
+    });
+
 
     if (this.solana._isInitialized.getValue()) {
       this.initializeChat();
@@ -98,19 +172,84 @@ export class ChatComponent implements OnInit, OnDestroy {
         });
     }
 
+    this.isInitialLoad = false;
+
   }
 
+
+  toggleActionMenu(messageId: string, event: Event): void {
+    event.stopPropagation(); // Empêche la propagation du clic
+
+    // Si le menu est déjà ouvert pour ce message, le fermer
+    if (this.activeMenuMessageId === messageId) {
+      this.activeMenuMessageId = null;
+    } else {
+      // Sinon, l'ouvrir (et fermer tout autre menu ouvert)
+      this.activeMenuMessageId = messageId;
+    }
+  }
+
+  // Pour fermer tous les menus quand on clique ailleurs
+  @HostListener('document:click')
+  closeAllMenus(): void {
+    this.activeMenuMessageId = null;
+  }
+
+  // Fonction like rapide sans ouvrir le menu
+  quickLike(message: any, event: Event): void {
+    event.stopPropagation(); // Empêche l'ouverture du menu
+    this.likeMessage(message);
+  }
+
+  handleIsLive(e: any) {
+    if (e.type == 'stream_status_update') {
+      this.sendEvent.emit({ type: 'stream_status_update', isLive: e?.isLive || false });
+    }
+  }
+
+  handleViewCount(e: any) {
+    if (e.type == 'viewer_count') {
+      this.sendEvent.emit({ type: 'viewer_count', count: e?.count.totalCount || 0 });
+      this.avatarBottom.bars = e.count.viewers
+    }
+  }
+
+  handleUserWriting(e: any) {
+    const barIndex = this.avatarBottom.bars.findIndex((bar: any) => bar.userId == e.userId);
+
+    if(e.userId == this.solana.session.id && !e.isWriting){
+      this.isFirstLetter = true;
+      this.lastMessageLength = 0;
+      this.lastSentStatus = false;  
+    }
+    if (barIndex != -1) {
+      this.avatarBottom.bars[barIndex].isWriting = e.isWriting;
+    }
+  }
+
+  handleViewAdd(e: any) {
+    if (e.type == 'viewer_add') {
+      this.avatarBottom.bars.push(e)
+    }
+  }
   initializeChat() {
     const token = this.solana.tokenService.getToken() || null;
     this.chatService.connectToCoin(this.coinId, token);
 
     this.subscription = this.chatService.messages$.subscribe((message: any) => {
-      console.log(message);
-      // Cette partie reste la même, mais il faut s'assurer que les événements 
-      // sont émis correctement côté serveur
+
       switch (message.type) {
         case 'new_message':
           this.handleNewMessage(message.message);
+          break;
+        case 'stream_status_update':
+          this.handleIsLive(message);
+          break;
+        case 'viewer_count':
+          this.handleViewCount(message);
+          break;
+        case 'viewer_add':
+          this.handleViewAdd(message);
           break;
         case 'like_update':
           this.handleLikeUpdate({
@@ -129,8 +268,8 @@ export class ChatComponent implements OnInit, OnDestroy {
         case 'user_banned':
           this.handleBanNotification(message);
           break;
-        case 'viewer_count':
-          console.log(message.count);
+        case 'user_writing':
+          this.handleUserWriting(message)
           break;
       }
     });
@@ -141,6 +280,26 @@ export class ChatComponent implements OnInit, OnDestroy {
         this.isInitialLoad = false;
       }, 100);
     });
+  }
+
+  handleMessageAction(option: string, message: any): void {
+    switch (option) {
+      case 'Reply':
+        this.replyToMessage(message);
+        break;
+      case 'Like':
+        this.likeMessage(message);
+        break;
+      case 'Delete':
+        this.deleteMessage(message);
+        break;
+      case 'Pin':
+        this.togglePinMessage(message);
+        break;
+      case 'Ban':
+        this.banSelection(message, 'ban');
+        break;
+    }
   }
 
   initOption() {
@@ -166,7 +325,6 @@ export class ChatComponent implements OnInit, OnDestroy {
         : '';
 
 
-      console.log(`${banMessage}${reason}`);
       this.notificationService.showError(`${banMessage}${reason}`);
     }
   }
@@ -196,7 +354,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       messageId: message.id,
       coinId: this.coinId,
       isPinned: !message.isPinned,
-      token: this.tokenService.getToken()
+      token: this.solana.tokenService.getToken()
     };
 
     this.chatService.sendMessage(obj);
@@ -485,15 +643,18 @@ export class ChatComponent implements OnInit, OnDestroy {
       content: this.newMessage,
       timestamp: Date.now(),
       parentMessageId: this.replyingTo?.id,
-      token: this.tokenService.getToken()
+      token: this.solana.tokenService.getToken()
     }
 
     if (this.newMessage.trim()) {
-      this.chatService.sendMessage(obj);
+      this.chatService.send(obj);
       this.newMessage = '';
       if (this.replyingTo) {
         this.replyingTo = null;
       }
+      this.isFirstLetter = true;
+      this.lastMessageLength = 0;
+      this.lastSentStatus = false;
       setTimeout(() => {
         this.scrollToBottom();
       });
@@ -522,7 +683,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       type: 'like_message',
       messageId: message.id,
       coinId: this.coinId,
-      token: this.tokenService.getToken()
+      token: this.solana.tokenService.getToken()
     }
 
     this.chatService.sendMessage(obj);
@@ -552,6 +713,10 @@ export class ChatComponent implements OnInit, OnDestroy {
     return senderId === this.solana.session?.id;
   }
 
+  onInputChange() {
+    this.messageSubject.next(this.newMessage);
+  }
+
   ngOnDestroy() {
     if (this.subscription) {
       this.subscription.unsubscribe();
@@ -563,6 +728,12 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
     this.loadMoreSubject.complete();
+    this.messageSubject.complete();
+    this.isFirstLetter = true;
+    this.lastMessageLength = 0;
+    this.lastSentStatus = false;
+
+
   }
 
   deleteMessage(message: any) {
@@ -575,7 +746,7 @@ export class ChatComponent implements OnInit, OnDestroy {
       type: 'delete_message',
       messageId: message.id,
       coinId: this.coinId,
-      token: this.tokenService.getToken()
+      token: this.solana.tokenService.getToken()
     };
 
     this.chatService.sendMessage(obj);
@@ -593,10 +764,12 @@ export class ChatComponent implements OnInit, OnDestroy {
       coinId: this.coinId,
       reason: 'Violation of chat rules', // Vous pouvez ajouter un input pour la raison
       duration: duration, // en minutes
-      token: this.tokenService.getToken()
+      token: this.solana.tokenService.getToken()
     };
 
     this.chatService.sendMessage(obj);
+
+    this.deleteMessage(message);
   }
 
   banSelection(message: any, e: any) {

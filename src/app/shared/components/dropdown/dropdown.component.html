@@ -1,37 +1,57 @@
-<!-- Dropdown Container -->
-<div (click)="toggleDropdown($event)" id="dropdownContainer">
+<!-- Dropdown Container/Trigger -->
+<div (click)="toggleDropdown($event)" id="dropdownContainer" class="relative">
   <ng-content></ng-content>
 </div>
-<!-- Menu Dropdown -->
-<div
-  [class.hidden]="!isOpen"
-  class="absolute 
-         z-10 
-         mt-2
-         w-44
-         max-h-[130px]
-         overflow-auto
-         divide-y
-         divide-gray-100
-         dark:divide-gray-600
-         rounded-lg
-         bg-white 
-         dark:bg-gray-700
-         shadow-lg
-         scrollbar-thin
-         scrollbar-thumb-gray-400
-         scrollbar-track-gray-100
-         dark:scrollbar-thumb-gray-600
-         dark:scrollbar-track-gray-800"
-  #dropdown
-  id="dropdown"
->
-  <ul class="py-2 text-sm text-gray-700 dark:text-gray-200" >
-    <li *ngFor="let option of options">
-      <a (click)="selectOption(option)" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 
-                         dark:hover:text-white cursor-pointer">
-        {{ option || option?.label }}
-      </a>
-    </li>
-  </ul>
-</div>
+
+<!-- Template qui sera injecté dans document.body -->
+<ng-template #dropdownTemplate>
+  <div
+    [class.opacity-0]="!isOpen"
+    [class.translate-y-2]="!isOpen"
+    [class.pointer-events-none]="!isOpen"
+    [class.opacity-100]="isOpen"
+    [class.translate-y-0]="isOpen"
+    class="z-20
+           w-44
+           max-h-[130px]
+           overflow-auto
+           rounded-lg
+           bg-gray-800/90
+           backdrop-blur-sm
+           border
+           border-gray-700/50
+           shadow-xl
+           transition-all
+           duration-200
+           ease-out
+           custom-scrollbar"
+  >
+    <ul class="py-1 text-sm text-gray-300">
+      <li *ngFor="let option of options">
+        <a 
+          (click)="selectOption(option)" 
+          class="block px-3 py-2 hover:bg-indigo-500/20 hover:text-indigo-300 transition-colors duration-150 cursor-pointer flex items-center gap-2"
+          [ngClass]="{'bg-indigo-500/10': selectedOption === option}"
+        >
+          <!-- Option avec icône (si disponible) -->
+          <svg *ngIf="option?.icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path [attr.d]="option.icon" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+          </svg>
+          
+          <!-- Texte de l'option -->
+          <span>{{ option?.label || option }}</span>
+          
+          <!-- Indicateur de sélection -->
+          <svg *ngIf="selectedOption === option" class="w-4 h-4 ml-auto text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+          </svg>
+        </a>
+      </li>
+    </ul>
+    
+    <!-- État vide -->
+    <div *ngIf="options.length === 0" class="py-3 px-3 text-center text-gray-500 text-xs">
+      Aucune option disponible
+    </div>
+  </div>
+</ng-template>

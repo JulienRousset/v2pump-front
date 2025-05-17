@@ -1,58 +1,48 @@
-.market-cap-info {
-    font-size: 14px;
-    color: white;
+/* Animation de scintillement */
+@keyframes shimmer {
+  0% {
+      transform: translateX(-100%);
+  }
+  100% {
+      transform: translateX(100%);
+  }
 }
 
-.progress-glow {
-    filter: drop-shadow(0 0 4px rgba(153, 69, 255, 0.3));
+
+@keyframes numberChange {
+  0% {
+    transform: translateY(-20px);
+    opacity: 0;
   }
-  
-  @keyframes progressShine {
-    0% {
-      transform: translateX(-100%);
-    }
-    100% {
-      transform: translateX(100%);
-    }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
   }
-  
-  .king-progress-bar {
-    position: relative;
-    &::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-      animation: shimmer 2s infinite;
-    }
-  }
-  
-  @keyframes shimmer {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
-  }
-  
-  .progress {
-    position: relative;
-    overflow: hidden;
-    
-    &::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(
-        90deg,
-        transparent,
-        rgba(255, 255, 255, 0.1),
-        transparent
-      );
-      animation: progressShine 2s infinite;
-    }
-  }
-  
+}
+
+.number-animate {
+  display: inline-block;
+  animation: numberChange 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}
+
+/* Animation d'échelle personnalisée */
+.hover\:scale-102:hover {
+  transform: scale(1.02);
+}
+
+/* Style de carte cohérent avec le chat */
+.progress-card {
+  background-color: #1f2937; /* bg-gray-800 */
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+}
+
+.progress-card:hover {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}

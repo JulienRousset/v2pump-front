@@ -1,97 +1,64 @@
-// dropdown.component.ts
-import { Component, ElementRef, EventEmitter, HostListener, Input, OnInit, Output, Renderer2, OnDestroy, ViewChild } from '@angular/core';
+import { 
+  Component, 
+  ElementRef, 
+  EventEmitter, 
+  HostListener, 
+  Input, 
+  OnInit, 
+  Output, 
+  OnDestroy, 
+  ViewChild, 
+  TemplateRef, 
+  ViewContainerRef, 
+  AfterViewInit,
+  Renderer2
+} from '@angular/core';
 
 @Component({
   selector: 'app-dropdown',
-  template: `
-    <!-- Dropdown Container -->
-    <div (click)="toggleDropdown($event)" id="dropdownContainer">
-      <ng-content></ng-content>
-    </div>
-  `,
-  styles: [`
-    :host ::ng-deep .dropdown-portal {
-      position: fixed;
-      z-index: 1000;
-    }
-  `]
+  templateUrl: './dropdown.component.html',
 })
-export class DropdownComponent implements OnInit, OnDestroy {
+export class DropdownComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input() options: any[] = [];
   @Output() optionSelected = new EventEmitter<any>();
+  @Input() set defaultSelected(value: any) {
+    if (value !== undefined && value !== null) {
+      this.selectedOption = value;
+    }
+  }
+  
+  @ViewChild('dropdownTemplate') dropdownTemplate!: TemplateRef<any>;
   
   isOpen = false;
-  selectedOption = 'Sélectionnez une option';
-  private dropdownElement: HTMLElement | null = null;
+  selectedOption: any = null;
+  private portalHost: HTMLElement | null = null;
+  private viewRef: any = null;
 
   constructor(
     private elementRef: ElementRef,
-    private renderer: Renderer2
+    private renderer: Renderer2,
+    private viewContainerRef: ViewContainerRef
   ) {}
 
   ngOnInit() {
-    this.createDropdownElement();
+    // Créer l'élément hôte qui sera ajouté au document.body
+    this.portalHost = this.renderer.createElement('div');
+    this.renderer.addClass(this.portalHost, 'dropdown-portal');
+    this.renderer.appendChild(document.body, this.portalHost);
+  }
+
+  ngAfterViewInit() {
+    // Le template est maintenant disponible
   }
 
   ngOnDestroy() {
-    this.removeDropdownElement();
-  }
-
-  private createDropdownElement() {
-    // Créer l'élément dropdown
-    this.dropdownElement = this.renderer.createElement('div');
-    this.renderer.addClass(this.dropdownElement, 'dropdown-portal');
-    this.renderer.addClass(this.dropdownElement, 'absolute');
-    this.renderer.addClass(this.dropdownElement, 'z-10');
-    this.renderer.addClass(this.dropdownElement, 'bg-white');
-    this.renderer.addClass(this.dropdownElement, 'divide-y');
-    this.renderer.addClass(this.dropdownElement, 'divide-gray-100');
-    this.renderer.addClass(this.dropdownElement, 'rounded-lg');
-    this.renderer.addClass(this.dropdownElement, 'shadow-lg');
-    this.renderer.addClass(this.dropdownElement, 'w-44');
-    this.renderer.addClass(this.dropdownElement, 'overflow-auto');
-    this.renderer.addClass(this.dropdownElement, 'max-h-[130px]');
-    this.renderer.addClass(this.dropdownElement, 'dark:bg-gray-700');
-    this.renderer.addClass(this.dropdownElement, 'dark:divide-gray-600');
+    // Nettoyer le portail lors de la destruction du composant
+    if (this.viewRef) {
+      this.viewRef.destroy();
+    }
     
-    // Créer la liste
-    const ulElement = this.renderer.createElement('ul');
-    this.renderer.addClass(ulElement, 'py-2');
-    this.renderer.addClass(ulElement, 'text-sm');
-    this.renderer.addClass(ulElement, 'text-gray-700');
-    this.renderer.addClass(ulElement, 'dark:text-gray-200');
-
-    // Ajouter les options
-    this.options.forEach(option => {
-      const liElement = this.renderer.createElement('li');
-      const aElement = this.renderer.createElement('a');
-      
-      this.renderer.addClass(aElement, 'block');
-      this.renderer.addClass(aElement, 'px-4');
-      this.renderer.addClass(aElement, 'py-2');
-      this.renderer.addClass(aElement, 'hover:bg-gray-100');
-      this.renderer.addClass(aElement, 'dark:hover:bg-gray-600');
-      this.renderer.addClass(aElement, 'dark:hover:text-white');
-      this.renderer.addClass(aElement, 'cursor-pointer');
-      
-      this.renderer.setProperty(aElement, 'innerText', option.label || option);
-      
-      this.renderer.listen(aElement, 'click', () => {
-        this.selectOption(option);
-      });
-      
-      this.renderer.appendChild(liElement, aElement);
-      this.renderer.appendChild(ulElement, liElement);
-    });
-
-    this.renderer.appendChild(this.dropdownElement, ulElement);
-    this.renderer.appendChild(document.body, this.dropdownElement);
-    this.renderer.setStyle(this.dropdownElement, 'display', 'none');
-  }
-
-  private removeDropdownElement() {
-    if (this.dropdownElement && document.body.contains(this.dropdownElement)) {
-      this.renderer.removeChild(document.body, this.dropdownElement);
+    if (this.portalHost && document.body.contains(this.portalHost)) {
+      this.renderer.removeChild(document.body, this.portalHost);
     }
   }
 
@@ -103,91 +70,124 @@ export class DropdownComponent implements OnInit, OnDestroy {
       this.showDropdown();
     } else {
       this.hideDropdown();
+      // Pas de réinitialisation de selectedOption ici
     }
   }
 
   private showDropdown() {
-    if (!this.dropdownElement) return;
-  
+    if (!this.portalHost) return;
+
+    // Détruire la vue précédente si elle existe
+    if (this.viewRef) {
+      this.viewRef.destroy();
+      this.viewRef = null;
+    }
+    
+    // Créer une nouvelle vue à partir du template
+    this.viewRef = this.viewContainerRef.createEmbeddedView(this.dropdownTemplate);
+    
+    // Ajouter les éléments de la vue au portail
+    this.viewRef.rootNodes.forEach((node: Node) => {
+      this.renderer.appendChild(this.portalHost, node);
+    });
+    
+    // Positionner le dropdown
+    this.updateDropdownPosition();
+    
+    // Forcer la détection de changements
+    this.viewRef.detectChanges();
+  }
+
+  private hideDropdown() {
+    // Juste fermer visuellement sans affecter la sélection
+    if (this.viewRef) {
+      this.selectedOption = null;
+      this.viewRef.destroy();
+      this.viewRef = null;
+    }
+  }
+
+  private updateDropdownPosition() {
+    // Code de positionnement inchangé...
+    if (!this.portalHost) return;
+    
     const triggerRect = this.elementRef.nativeElement.getBoundingClientRect();
     const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
     const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
     
-    // Ajouter scrollTop à la position top
     this.renderer.setStyle(
-      this.dropdownElement, 
+      this.portalHost, 
+      'position', 
+      'absolute'
+    );
+    
+    this.renderer.setStyle(
+      this.portalHost, 
       'top', 
       `${triggerRect.bottom + scrollTop}px`
     );
     
-    // Ajouter scrollLeft à la position left si nécessaire
     this.renderer.setStyle(
-      this.dropdownElement, 
+      this.portalHost, 
       'left', 
       `${triggerRect.left + scrollLeft}px`
     );
     
-    this.renderer.setStyle(this.dropdownElement, 'display', 'block');
-  
     this.adjustDropdownPosition();
-  }
-  
-
-  private hideDropdown() {
-    if (this.dropdownElement) {
-      this.renderer.setStyle(this.dropdownElement, 'display', 'none');
-    }
   }
 
   private adjustDropdownPosition() {
-    if (!this.dropdownElement) return;
-  
-    const dropdownRect = this.dropdownElement.getBoundingClientRect();
+    // Code d'ajustement inchangé...
+    if (!this.portalHost) return;
+    
+    const dropdownRect = this.portalHost.getBoundingClientRect();
     const windowHeight = window.innerHeight;
     const windowWidth = window.innerWidth;
     const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
     const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
-  
-    if (dropdownRect.bottom > windowHeight + scrollTop) {
+    
+    if (dropdownRect.bottom > windowHeight) {
       const triggerRect = this.elementRef.nativeElement.getBoundingClientRect();
       this.renderer.setStyle(
-        this.dropdownElement, 
+        this.portalHost, 
         'top', 
         `${triggerRect.top + scrollTop - dropdownRect.height}px`
       );
     }
-  
-    if (dropdownRect.right > windowWidth + scrollLeft) {
+    
+    if (dropdownRect.right > windowWidth) {
       this.renderer.setStyle(
-        this.dropdownElement, 
+        this.portalHost, 
         'left', 
         `${windowWidth + scrollLeft - dropdownRect.width}px`
       );
     }
   }
-  
 
   selectOption(option: any) {
     this.selectedOption = option;
     this.optionSelected.emit(option);
     this.isOpen = false;
     this.hideDropdown();
+    // La sélection est conservée
   }
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: Event) {
-    if (!this.elementRef.nativeElement.contains(event.target) && 
-        this.dropdownElement && 
-        !this.dropdownElement.contains(event.target as Node)) {
+    const clickedInsideTrigger = this.elementRef.nativeElement.contains(event.target as Node);
+    const clickedInsideDropdown = this.portalHost?.contains(event.target as Node);
+    
+    if (!clickedInsideTrigger && !clickedInsideDropdown) {
       this.isOpen = false;
       this.hideDropdown();
+      // Pas de réinitialisation de selectedOption ici
     }
   }
 
-  @HostListener('window:resize', ['$event'])
-  onWindowChange() {
+  @HostListener('window:resize')
+  onWindowResize() {
     if (this.isOpen) {
-      this.hideDropdown();
+      this.updateDropdownPosition();
     }
   }
 }

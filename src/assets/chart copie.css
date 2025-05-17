@@ -1,0 +1,103 @@
+.theme-dark:root {
+    --tv-color-platform-background: #131722;
+    --tv-color-pane-background: #131722;
+    --tv-color-toolbar-button-background-hover: rgba(148, 163, 184, 0.1);
+    --tv-color-toolbar-button-background-expanded: rgba(148, 163, 184, 0.15);
+    --tv-color-toolbar-button-text: #64748b;
+    --tv-color-toolbar-button-text-hover: #f8fafc;
+    --tv-color-toolbar-button-text-active: #6366f1;
+    --tv-color-toolbar-button-text-active-hover: #818cf8;
+    --tv-color-toolbar-divider-background: rgba(148, 163, 184, 0.1);
+    --tv-color-grid-line: rgba(148, 163, 184, 0.06);
+    --tv-color-candlestick-up: #22c55e;
+    --tv-color-candlestick-down: #ef4444;
+    --tv-color-popup-background: #1e293b;
+    --tv-color-popup-element-hover-background: rgba(148, 163, 184, 0.1);
+    --tv-color-popup-element-text: #e2e8f0;
+    --tv-color-popup-element-text-hover: #f8fafc;
+    --tv-color-crosshair: rgba(99, 102, 241, 0.5);
+    --tv-color-selection-background: rgba(99, 102, 241, 0.2);
+    --tv-glass-background: rgba(30, 41, 59, 0.7);
+    --tv-glass-border: 1px solid rgba(148, 163, 184, 0.1);
+    --tv-glass-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  }
+  
+  :host ::ng-deep {
+    .chart-container {
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      
+      .chart-toolbar {
+        backdrop-filter: blur(8px);
+        background: var(--tv-glass-background);
+        
+        button {
+          border-radius: 6px;
+          transition: all 0.2s ease;
+          
+          &:hover {
+            transform: translateY(-1px);
+          }
+          
+          &:active {
+            transform: translateY(0);
+          }
+        }
+      }
+      
+      .chart-markup-table {
+        font-family: 'Inter', sans-serif;
+      }
+    }
+    
+    .price-animation {
+      transition: color 0.3s ease;
+      
+      &.up {
+        color: var(--tv-color-candlestick-up);
+      }
+      
+      &.down {
+        color: var(--tv-color-candlestick-down);
+      }
+    }
+    
+    .tv-tooltip {
+      backdrop-filter: blur(8px);
+      background: var(--tv-glass-background);
+      border: var(--tv-glass-border);
+      border-radius: 8px;
+      box-shadow: var(--tv-glass-shadow);
+      
+      &::before {
+        display: none;
+      }
+    }
+    
+    .control-bar {
+      .button {
+        border-radius: 6px;
+        padding: 6px 12px;
+        font-weight: 500;
+        letter-spacing: 0.01em;
+        
+        &:hover {
+          background: var(--tv-color-toolbar-button-background-hover);
+        }
+      }
+    }
+    
+    .legend-source-item {
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      padding: 4px 8px;
+      border-radius: 4px;
+      
+      &:hover {
+        background: var(--tv-color-popup-element-hover-background);
+      }
+    }
+  }
+  

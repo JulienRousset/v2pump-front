@@ -6,7 +6,7 @@ import { NotifierModule, NotifierOptions } from 'angular-notifier';
 import { SharedModule } from '@shared/shared.module';
 import { AppComponent } from './app.component';
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
-import { AuthInterceptor } from 'src/app/auth.service';
+import { AuthInterceptor } from 'src/app/httpInterceptor';
 import { ShortenAddressPipe } from './shorten-address.pipe';
 
 

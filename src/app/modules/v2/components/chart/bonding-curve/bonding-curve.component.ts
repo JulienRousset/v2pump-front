@@ -18,6 +18,7 @@ interface PumpCurveState {
   selector: 'app-bonding-curve',
   templateUrl: './bonding-curve.component.html',
   styleUrls: ['./bonding-curve.component.scss'],
+  
 })
 export class BondingCurveComponent implements OnInit {
   private readonly RPC_ENDPOINT = 'https://wandering-billowing-moon.solana-mainnet.quiknode.pro/da55f32e52d1b381b8dc20e71c097aa7d184cbe0';
@@ -81,7 +82,6 @@ export class BondingCurveComponent implements OnInit {
   }
 
   async ngOnInit() {
-    console.log(this.curve)
     if (this.curve) {
       await this.checkCurveProgress();
     }
@@ -91,7 +91,6 @@ export class BondingCurveComponent implements OnInit {
   private calculateKingOfTheHillProgress(state: PumpCurveState): void {
     try {
 
-      console.log(state)
       // Calcul du solde actuel en SOL
       const totalTokens = state.tokenTotalSupply;
       const currentSolReserves = state.virtualSolReserves;
@@ -143,7 +142,6 @@ export class BondingCurveComponent implements OnInit {
 
     try {
       this.isUpdating = true;
-      console.log('Début de la mise à jour:', new Date().toISOString());
 
       if (this.curve) {
         await this.checkCurveProgress();
@@ -154,12 +152,9 @@ export class BondingCurveComponent implements OnInit {
       console.error('Error updating components:', error);
     } finally {
       this.isUpdating = false;
-      console.log('Fin de la mise à jour:', new Date().toISOString());
 
-      // Si une mise à jour a été demandée pendant l'exécution
       if (this.updateQueued) {
         this.updateQueued = false;
-        // Attend le délai complet avant de traiter la prochaine mise à jour
         setTimeout(() => {
           this.processUpdate();
         }, this.THROTTLE_DELAY);

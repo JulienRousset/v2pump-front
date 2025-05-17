@@ -17,7 +17,6 @@ export class SocketIoTransactionService {
 
   connect(token:any): void {
     if (this.socket?.connected) {
-      console.log('Socket.IO déjà connecté');
       return;
     }
 
@@ -32,7 +31,6 @@ export class SocketIoTransactionService {
 
     // Gestionnaires d'événements
     this.socket.on('connect', () => {
-      console.log('Socket.IO connecté');
       this.connectionStatus$.next(true);
       
       // Envoyer le paquet 40 après la connexion
@@ -40,7 +38,6 @@ export class SocketIoTransactionService {
     });
 
     this.socket.on('disconnect', (reason) => {
-      console.log('Socket.IO déconnecté:', reason);
       this.connectionStatus$.next(false);
     });
 
@@ -50,7 +47,6 @@ export class SocketIoTransactionService {
 
     // Écouter tous les messages
     this.socket.onAny((eventName, ...args) => {
-      console.log('Message reçu:', eventName, args);
       this.messages$.next({
         event: eventName,
         data: args,

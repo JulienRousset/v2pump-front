@@ -2,6 +2,7 @@ import { Component, ViewChild, ElementRef, HostListener, Input, OnInit } from '@
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
 import AgoraRTC, { IAgoraRTCClient, IRemoteVideoTrack, IRemoteAudioTrack } from 'agora-rtc-sdk-ng';
+import { iif } from 'rxjs';
 
 @Component({
     selector: 'app-livestream-viewer',
@@ -11,16 +12,16 @@ import AgoraRTC, { IAgoraRTCClient, IRemoteVideoTrack, IRemoteAudioTrack } from 
 export class LivestreamViewerComponent implements OnInit {
     @ViewChild('videoElement') videoElement!: ElementRef;
     @Input() coinId: string = '';
+    @Input() count: any = 0;
 
     private client: IAgoraRTCClient;
     private remoteVideoTrack: IRemoteVideoTrack | any;
     private remoteAudioTrack: IRemoteAudioTrack | any;
     private remoteUsers: Set<string> = new Set();
 
-    isWatching: boolean = true;
+    isWatching: boolean = false;
     streamTitle: string = '';
     streamDescription: string = '';
-    viewerCount: number = 0;
     sizeArray = ['small', 'medium', 'large'];
 
     dimensions = { width: 320, height: 180 };
@@ -29,7 +30,9 @@ export class LivestreamViewerComponent implements OnInit {
     isResizing = false;
     dragOffset = { x: 0, y: 0 };
     resizeOffset = { x: 0, y: 0 };
-    currentSize: 'small' | 'medium' | 'large' = 'medium';
+    currentSize: 'small' | 'medium' | 'large' = 'small';
+    isAudioEnabled: boolean = true;
+    isVideoEnabled: boolean = true;
 
     private readonly sizeDimensions = {
         small: { width: 320, height: 180 },
@@ -45,8 +48,12 @@ export class LivestreamViewerComponent implements OnInit {
     }
 
     async ngOnInit() {
+        this.join();
+    }
+
+    async join() {
         try {
-            const response: any = await this.http.get(`http://localhost:3000/livestream/${this.coinId}`).toPromise();
+            const response: any = await this.http.get(`http://127.0.0.1:3000/livestream/${this.coinId}`).toPromise();
             const { title, description, token, channelName, appId, uid } = response.data;
 
             const isLive = true; // À adapter selon votre logique
@@ -60,61 +67,38 @@ export class LivestreamViewerComponent implements OnInit {
         }
     }
 
+    toggleMicrophone() {
+        this.isAudioEnabled = !this.isAudioEnabled;
+        // Ajoutez ici la logique pour activer/désactiver le microphone
+        if (this.isAudioEnabled) {
+            this.remoteAudioTrack.setVolume(100); // Volume normal
+        } else {
+            this.remoteAudioTrack.setVolume(0); // Volume normal
+        }
+    }
+
+    toggleCamera() {
+        this.isVideoEnabled = !this.isVideoEnabled;
+        // Ajoutez ici la logique pour activer/désactiver la caméra
+        if (this.videoElement && this.videoElement.nativeElement.srcObject) {
+            const stream = this.videoElement.nativeElement.srcObject as MediaStream;
+            stream.getVideoTracks().forEach(track => {
+                track.enabled = this.isVideoEnabled;
+            });
+        }
+    }
+
     private async setupAgoraEvents() {
-        // Événement quand un utilisateur rejoint
-        this.client.on("user-joined", (user) => {
-            console.log("User joined:", user.uid);
-            console.log("User joined:", user.uid);
 
-            console.log("User joined:", user.uid);
-
-            console.log("User joined:", user.uid);
-
-            console.log("User joined:", user.uid);
-
-            console.log("User joined:", user.uid);
-
-            console.log("User joined:", user.uid);
-
-            console.log("User joined:", user.uid);
-
-            console.log("User joined:", user.uid);
-
-            
-            console.log("User joined:", user.uid);
-
-
-            this.remoteUsers.add(user.uid.toString());
-            this.updateViewerCount();
-        });
-
-        // Événement quand un utilisateur quitte
-        this.client.on("user-left", (user) => {
-            console.log("User left:", user.uid);
-            console.log("User left:", user.uid);
-            console.log("User left:", user.uid);
-            console.log("User left:", user.uid);
-            console.log("User left:", user.uid);
-            console.log("User left:", user.uid);
-            console.log("User left:", user.uid);
-            console.log("User left:", user.uid);
-
-              console.log("User left:", user.uid);
-            this.remoteUsers.delete(user.uid.toString());
-            this.updateViewerCount();
-            if (this.remoteVideoTrack && user.uid === this.remoteVideoTrack.getUserId()) {
-                this.remoteVideoTrack = null;
-                this.remoteAudioTrack = null;
-            }
-        });
 
         this.client.on("user-published", async (user, mediaType) => {
             await this.client.subscribe(user, mediaType);
-            
+
             if (mediaType === "video") {
                 this.remoteVideoTrack = user.videoTrack;
                 if (this.videoElement?.nativeElement) {
-                    this.remoteVideoTrack?.play(this.videoElement.nativeElement);
+                    this.remoteVideoTrack?.play(this.videoElement.nativeElement, {
+                    });
                 }
             }
             if (mediaType === "audio") {
@@ -134,27 +118,23 @@ export class LivestreamViewerComponent implements OnInit {
         });
 
         this.client.on("connection-state-change", (curState, prevState) => {
-            console.log("Connection state changed from", prevState, "to", curState);
         });
+        
     }
 
-    private updateViewerCount() {
-        this.viewerCount = this.remoteUsers.size;
-    }
 
     private async joinStream(appId: string, channelName: string, token: string, uid: number) {
         try {
             await this.client.setClientRole("audience");
             await this.client.join(appId, channelName, token, uid);
-            
+
             await this.setupAgoraEvents();
 
             this.isWatching = true;
             this.setSize('medium');
-            
+
             // Initialiser le compteur
             this.remoteUsers.clear();
-            this.viewerCount = 0;
 
         } catch (error) {
             console.error('Erreur lors de la connexion au stream:', error);
@@ -166,7 +146,6 @@ export class LivestreamViewerComponent implements OnInit {
         try {
             // Nettoyer le compteur
             this.remoteUsers.clear();
-            this.viewerCount = 0;
 
             if (this.remoteAudioTrack) {
                 this.remoteAudioTrack.stop();
@@ -175,7 +154,7 @@ export class LivestreamViewerComponent implements OnInit {
             if (this.remoteVideoTrack) {
                 this.remoteVideoTrack = null;
             }
-            
+
             await this.client.leave();
             this.isWatching = false;
 
@@ -252,7 +231,7 @@ export class LivestreamViewerComponent implements OnInit {
     setSize(size: 'small' | 'medium' | 'large') {
         this.currentSize = size;
         const newDimensions = this.sizeDimensions[size];
-        
+
         const maxWidth = window.innerWidth - this.position.x;
         const maxHeight = window.innerHeight - this.position.y;
 

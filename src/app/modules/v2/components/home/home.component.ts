@@ -179,7 +179,6 @@ export class HomeComponent implements OnInit, OnDestroy {
           image: coin?.image_uri?.replace(/cf-ipfs\.com/g, 'ipfs.io')
         }));
 
-        console.log(this.coins);
         if (this.currentSort === 'featured') {
           this.startTrendingUpdates();
         }
@@ -299,9 +298,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   changeSort(sort: any) {
     this.currentSort = sort.value;
     this.currentLabelSort = sort.label;
-    this.loadCoins(); // Recharge les données avec le nouveau tri
-    console.log(this.searchQuery)
-    console.log(this.trending);
+    this.loadCoins();
     if (this.currentPage == 1 && this.searchQuery  == "" && this.trending  == "") {
       this.handleConnectionsBasedOnSort(); // Gère les connexions en fonction du tri
     } else {
@@ -319,8 +316,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     console.log('[WebsocketService] Connected.');
 
     const messageSubscription = this.wsService.messages$.subscribe(message => {
-      console.log(message);
-
       if (!this.animate || this.disableAnimate) {
         return
       }
@@ -357,8 +352,6 @@ export class HomeComponent implements OnInit, OnDestroy {
           },
           ...this.coins.slice(0, 49) // Prend les 49 premiers éléments existants
         ];
-
-        console.log('New coin added:', message.data.name);
       }
     });
 
@@ -372,9 +365,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
 
   initializeSocketIo() {
-      this.socketService.connect();
-      console.log('[SocketIoService] Connected.');
-  
+      this.socketService.connect();  
       const randomDelay = Math.floor(Math.random() * 1301) + 500;
 
       // Créer un interval de 2 secondes pour traiter les newTrades
@@ -405,7 +396,6 @@ export class HomeComponent implements OnInit, OnDestroy {
       });
   
       const messageSubscription = this.socketService.messages$.subscribe(message => {
-        console.log('Socket.IO message:', message);
         if (message && message.data && message.data[0]) {
           // Vérification des doublons
           if (this.coins.length > 0) {
@@ -446,7 +436,6 @@ export class HomeComponent implements OnInit, OnDestroy {
               ...this.coins.slice(0, 49)
             ];
           }
-          console.log('New coin added:', message.data[0].name);
         }
       });
   
@@ -469,7 +458,6 @@ export class HomeComponent implements OnInit, OnDestroy {
    * Déconnecte tous les services pour libérer les ressources.
    */
   disconnectAllServices() {
-    console.log('[ChatComponent] Disconnecting all services...');
     this.wsService.disconnect();
     this.socketService.disconnect();
     this.deactivateMessageSubscriptions();

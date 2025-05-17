@@ -74,7 +74,7 @@ export class PhantomConnectService {
 
   // Méthode pour vérifier la validité du token
   private verifyToken() {
-    this.httpClient.get('http://localhost:3000/api/auth/verify-token', {
+    this.httpClient.get('http://127.0.0.1:3000/api/auth/verify-token', {
       headers: {
         Authorization: `Bearer ${this.jwtToken}`
       }
@@ -166,7 +166,7 @@ export class PhantomConnectService {
 
       // Appel à l'API avec gestion des erreurs
       this.httpClient.post<{ success: boolean, token: string, message: string }>(
-        'http://localhost:3000/api/auth/login',
+        'http://127.0.0.1:3000/api/auth/login',
         authData,
         {
           headers: {
@@ -188,7 +188,7 @@ export class PhantomConnectService {
 
       // Appel à l'API avec gestion des erreurs
       this.httpClient.post<{ success: boolean, token: string, message: string }>(
-        'http://localhost:3000/pumpfun2/auth/login',
+        'http://127.0.0.1:3000/pumpfun2/auth/login',
         authData,
         {
           headers: {

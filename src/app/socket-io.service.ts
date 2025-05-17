@@ -8,7 +8,7 @@ import { BehaviorSubject, Subject } from 'rxjs';
 })
 export class SocketIoService {
   private socket: Socket | null = null;
-  private readonly WS_URL = 'wss://frontend-api-v2.pump.fun';
+  private readonly WS_URL = 'wss://frontend-api-v3.pump.fun';
   
   public messages$ = new Subject<any>();
   public connectionStatus$ = new BehaviorSubject<boolean>(false);
@@ -17,7 +17,6 @@ export class SocketIoService {
 
   connect(): void {
     if (this.socket?.connected) {
-      console.log('Socket.IO déjà connecté');
       return;
     }
 
@@ -32,7 +31,6 @@ export class SocketIoService {
 
     // Gestionnaires d'événements
     this.socket.on('connect', () => {
-      console.log('Socket.IO connecté');
       this.connectionStatus$.next(true);
       
       // Envoyer le paquet 40 après la connexion
@@ -50,7 +48,6 @@ export class SocketIoService {
 
     // Écouter tous les messages
     this.socket.onAny((eventName, ...args) => {
-      console.log('Message reçu:', eventName, args);
       this.messages$.next({
         event: eventName,
         data: args,
@@ -61,7 +58,6 @@ export class SocketIoService {
 
   private sendPacket40(): void {
     if (this.socket?.connected) {
-      console.log('Envoi du paquet 40');
       this.socket.send('40');
     }
   }

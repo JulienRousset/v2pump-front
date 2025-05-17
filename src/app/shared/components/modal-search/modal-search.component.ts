@@ -129,7 +129,6 @@ export class ModalSearchComponent implements OnInit {
       next: (response: any[]) => {
         const formattedCoins = response.map(coin => this.formatResponse(coin));
 
-         console.log(formattedCoins)
         this.coins = [...this.coins, ...formattedCoins];
         this.hasMore = response.length === this.limit;
         this.noResults = this.coins.length === 0;
