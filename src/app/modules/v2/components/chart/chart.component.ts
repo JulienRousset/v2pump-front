@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ViewChild } from '@angular/core';
+import { Component, OnDestroy, OnInit, ViewChild, HostListener, ElementRef } from '@angular/core';
 import { animate, query, stagger, state, style, transition, trigger } from '@angular/animations';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
@@ -9,6 +9,7 @@ import { TradingViewComponent } from './tradingview/tradingview.component';
 import { SolanaService } from '@shared/services/solana.service';
 import { NotificationService } from 'src/app/notification.service';
 import { TopHolderComponent } from './top-holder/top-holder.component';
+import {MatTabsModule} from '@angular/material/tabs';
 
 @Component({
   selector: 'app-chart',
@@ -96,6 +97,10 @@ export class ChartComponent implements OnInit, OnDestroy {
   private destroy$ = new Subject<void>();
   private lastUpdateTime = 0;
 
+  public activeTab: string = 'profile';
+
+  public deviceType: 'mobile' | 'tablet' | 'laptop' | 'desktop' | 'wide' = 'desktop';
+
   constructor(
     private http: HttpClient,
     private route: ActivatedRoute,
@@ -105,6 +110,7 @@ export class ChartComponent implements OnInit, OnDestroy {
 
   async ngOnInit(): Promise<void> {
     try {
+      this.updateDeviceType(window.innerWidth);
       window.scrollTo(0, 0);
       this.coinId = this.route.snapshot.paramMap.get('id') || '';
       await this.loadToken();
@@ -115,7 +121,28 @@ export class ChartComponent implements OnInit, OnDestroy {
     }
   }
 
+  @HostListener('window:resize', ['$event'])
+  onResize(event: any) {
+    this.updateDeviceType(event.target.innerWidth);
+  }
 
+  private updateDeviceType(width: number): void {
+    if (width < 640) {
+      this.deviceType = 'mobile';
+    } else if (width >= 640 && width < 768) {
+      this.deviceType = 'tablet';
+    } else if (width >= 768 && width < 1024) {
+      this.deviceType = 'laptop';
+    } else if (width >= 1024 && width < 1536) {
+      this.deviceType = 'desktop';
+    } else {
+      this.deviceType = 'wide';
+    }
+  }
+
+  setActiveTab(tab: string): void {
+    this.activeTab = tab;
+  }
 
   private async loadToken(): Promise<boolean> {
     try {
@@ -283,4 +310,24 @@ export class ChartComponent implements OnInit, OnDestroy {
     this.token = null;
     this.view = 0;
   }
+
+  showTooltip = false;
+
+  @ViewChild('tooltipContainer') tooltipRef!: ElementRef;
+
+  toggleTooltip(event: MouseEvent) {
+    event.stopPropagation();
+    this.showTooltip = !this.showTooltip;
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent) {
+    if (!this.tooltipRef?.nativeElement) return; // ⛑ protection
+  
+    const clickedInside = this.tooltipRef.nativeElement.contains(event.target);
+    if (!clickedInside) {
+      this.showTooltip = false;
+    }
+  }
+  
 }

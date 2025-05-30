@@ -30,16 +30,16 @@ export class ChatComponent implements OnInit, OnDestroy {
 
 
   optionsDropdown = [
-    { label: 'Ban 1 minute', value: 1 },
-    { label: 'Ban 3 minutes', value: 3 },
-    { label: 'Ban 1 heure', value: 60 },
-    { label: 'Ban 5 heures', value: 5 * 60 },
-    { label: 'Ban 1 jour', value: 24 * 60 },
-    { label: 'Ban 7 jours', value: 7 * 24 * 60 },
-    { label: 'Ban 1 mois', value: 30 * 24 * 60 },
-    { label: 'Ban 3 mois', value: 90 * 24 * 60 },
-    { label: 'Ban 1 an', value: 365 * 24 * 60 },
-    { label: 'Ban permanent', value: -1 }
+      { label: 'Ban 1 minute', value: 1 },
+      { label: 'Ban 3 minutes', value: 3 },
+      { label: 'Ban 1 hour', value: 60 },
+      { label: 'Ban 5 hours', value: 5 * 60 },
+      { label: 'Ban 1 day', value: 24 * 60 },
+      { label: 'Ban 7 days', value: 7 * 24 * 60 },
+      { label: 'Ban 1 month', value: 30 * 24 * 60 },
+      { label: 'Ban 3 months', value: 90 * 24 * 60 },
+      { label: 'Ban 1 year', value: 365 * 24 * 60 },
+      { label: 'Permanent ban', value: -1 }
   ];
 
   private pageSize: number = 50;

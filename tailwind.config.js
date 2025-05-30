@@ -5,7 +5,11 @@ module.exports = {
     "./node_modules/flowbite/**/*.js" // Inclure les composants de Flowbite
   ],
   theme: {
-    extend: {},
+    extend: {
+      zIndex: {
+        100: '100',
+      },
+    },
   },
   plugins: [],
 };
