@@ -1,9 +1,9 @@
-<div style="width: 100%;height:100px;" class=""></div>
+<div style="width: 100%;height:74.5px;" class=""></div>
 <div class="flex flex-wrap items-center gap-4 fixed bottom-[-4px] right-O">
   <ng-container *ngFor="let item of bars">
     <div style="margin-right: -65px;position: relative;">
       <img src="assets/bulle.svg" alt="" style="width: 20px;top: 0;right: 25px;position: absolute;" *ngIf="item.isWriting">
-      <app-avatar [encodedAvatar]="item?.userInfo.picture" [width]="100" [height]="100" [noPadding]="true">
+      <app-avatar [encodedAvatar]="item?.userInfo.picture" [ngStyle]="{ width: width, height: height }" [noPadding]="true">
       </app-avatar>
     </div>
   </ng-container>

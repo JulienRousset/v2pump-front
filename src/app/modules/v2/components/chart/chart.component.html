@@ -1,4 +1,522 @@
-<div class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white p-4 md:px-12" id="limiteDrag">
+<div *ngIf="deviceType === 'mobile' || deviceType === 'tablet' || deviceType === 'laptop'">
+  <!-- Onglets (Content) -->
+  <div *ngIf="activeTab === 'profile'" class="p-4 rounded-none md:rounded bg-gray-50 dark:bg-gray-800">
+    <div class="col-span-12 lg:col-span-9">
+      <div>
+        <div class="relative">
+          <div class="h-[40px] mb-2">
+            <div class="flex items-center gap-2 w-full absolute inset-0" *ngIf="!token" @fadeInOut>
+              <div
+                class="group inline-flex items-center gap-2 h-10 px-3 bg-gray-800/90 rounded-lg border border-gray-700 animate-pulse">
+                <div class="w-6 h-6 rounded-full bg-gray-700/50"></div>
+                <div class="flex flex-col justify-center">
+                  <div class="w-24 h-4 bg-gray-700/50 rounded"></div>
+                </div>
+                <div class="flex flex-col justify-center">
+                  <div class="w-16 h-3 bg-gray-700/50 rounded"></div>
+                </div>
+                <div class="flex items-center gap-1 px-2 h-6 bg-gray-700/30 rounded-md ml-2">
+                  <div class="w-3 h-3 rounded-full bg-gray-700/50"></div>
+                  <div class="w-16 h-3 bg-gray-700/50 rounded"></div>
+                </div>
+              </div>
+
+              <div
+                class="group flex items-center gap-1.5 h-10 px-3 border border-gray-700 rounded-lg bg-gray-800/90 animate-pulse">
+                <div class="w-16 h-6 bg-gray-700/50 rounded"></div>
+                <div class="w-10 h-3 bg-gray-700/50 rounded"></div>
+              </div>
+
+              <div
+                class="group flex items-center gap-1.5 h-10 px-3 border border-gray-700 rounded-lg bg-gray-800/90 animate-pulse">
+                <div class="w-12 h-6 bg-gray-700/50 rounded"></div>
+                <div class="w-10 h-3 bg-gray-700/50 rounded"></div>
+              </div>
+            </div>
+
+            <!-- Actual Content -->
+            <div class="flex items-center gap-2 w-full" *ngIf="token" @fadeInOut>
+              <!-- Badge d'information du token -->
+              <div
+                class="group inline-flex items-center gap-2 h-10 px-3 bg-gradient-to-r from-gray-800/90 to-gray-800/70 backdrop-blur-sm rounded-lg border border-gray-700/50 hover:border-indigo-500/30 transition-all duration-200 shadow-sm">
+                <!-- Logo avec effet de pulsation au survol -->
+                <div class="relative">
+                  <img [src]="token.logoURI" alt="Token"
+                    class="w-6 h-6 rounded-full ring-1 ring-white/10 group-hover:ring-indigo-500/50 transition-all duration-300"
+                    loading="lazy">
+                  <div
+                    class="absolute inset-0 bg-indigo-500/20 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-pulse transition-opacity duration-300">
+                  </div>
+                </div>
+
+                <!-- Nom du token -->
+                <div class="flex flex-col justify-center relative group w-fit" (click)="toggleTooltip($event)"
+                #tooltipTrigger>
+                    <span
+                      class="text-sm font-medium w-[48px] md:w-auto truncate text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-300 group-hover:from-indigo-300 group-hover:to-purple-300 transition-colors duration-300 cursor-help">
+                      {{token?.name}}
+                    </span>
+                    <div
+                    class="absolute bottom-full left-2/2 mb-2
+                    bg-gray-800 text-white text-xs
+                    rounded-lg shadow-lg px-0 py-0 z-[51]
+                    w-max max-w-[80vw] transition-opacity duration-200
+                    pointer-events-none"
+                    [class.opacity-100]="showTooltip"
+                    [class.opacity-0]="!showTooltip"
+                    [class.pointer-events-auto]="showTooltip">
+                      {{token?.name}}
+                  </div>
+                </div>
+                
+
+                <!-- Symbole du token -->
+                <div class="flex flex-col justify-center">
+                  <span
+                    class="text-[10px] font-medium text-gray-300 group-hover:text-indigo-300 transition-colors duration-300 truncate">
+                    {{token.symbol.startsWith('$') ? '' : '$'}}{{ token.symbol }}
+                  </span>
+                </div>
+
+                <!-- Adresse du créateur avec badge -->
+                <div
+                  class="flex items-center gap-1 px-2 h-6 bg-green-900/20 group-hover:bg-green-900/30 rounded-md ml-2 transition-colors duration-200 border border-green-500/10">
+                  <img
+                    src="https://pump.mypinata.cloud/ipfs/QmeSzchzEPqCU1jwTnsipwcBAeH7S4bmVvFGfF65iA1BY1?img-width=16&img-dpr=2&img-onerror=redirect"
+                    class="w-3 h-3" alt="Pump">
+                  <span class="text-[10px] text-green-400 group-hover:text-green-300 transition-colors duration-200">
+                    {{token.creator ? (token.creator | shortenAddress) : '-'}}
+                  </span>
+                </div>
+              </div>
+
+              <!-- Conteneur principal avec flex -->
+              <div class="flex items-center gap-2" style="margin-left: auto;">
+                <!-- Contenu précédent à gauche si nécessaire -->
+
+                <!-- Container pour les badges alignés à droite -->
+                <div class="flex items-center gap-2 ml-auto">
+                  <!-- Badge de capitalisation boursière -->
+                  <div *ngIf="token && token.mc"
+                    class="group flex items-center gap-1.5 h-10 px-3 border border-gray-700/50 hover:border-green-500/30 rounded-lg bg-gradient-to-r from-gray-800/90 to-gray-800/70 backdrop-blur-sm transition-all duration-200 shadow-sm">
+                    <span
+                      class="text-lg font-semibold text-green-400 group-hover:text-green-300 transition-colors duration-300"
+                      [innerHTML]="token.mc | shortenNumber"></span>
+                    <div class="flex flex-col justify-center">
+                      <span
+                        class="text-[10px] text-gray-400 uppercase tracking-wider group-hover:text-green-300/80 transition-colors duration-200">mcap</span>
+                    </div>
+                  </div>
+
+                  <!-- Indicateur Live -->
+                  <div *ngIf="token && token.is_currently_live"
+                    class="group flex items-center gap-2 h-10 px-3 border border-gray-700/50 hover:border-red-500/30 rounded-lg bg-gradient-to-r from-gray-800/90 to-gray-800/70 backdrop-blur-sm transition-all duration-200 shadow-sm">
+                    <div class="relative flex h-2.5 w-2.5">
+                      <span
+                        class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                      <span
+                        class="relative inline-flex rounded-full h-2.5 w-2.5 bg-gradient-to-r from-red-500 to-red-600 shadow-sm shadow-red-500/20"></span>
+                    </div>
+                    <span
+                      class="text-sm font-medium text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-rose-300 group-hover:from-red-300 group-hover:to-rose-200 transition-colors duration-300">Live</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+
+          </div>
+        </div>
+      </div>
+
+      <app-tradingview [coinId]="coinId" [token]="token"></app-tradingview>
+
+      <div class="grid grid-cols-12 gap-4 mt-3">
+        <div class="col-span-12 lg:col-span-8" @fadeInOut>
+          <app-transaction [coinId]="coinId" [token]="token" [selectedCurrency]="selectedCurrency"
+            (chartUpdate)="updateData($event, 'chart')" (priceUpdate)="updateData($event, 'price')">
+          </app-transaction>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div *ngIf="activeTab === 'tchat'" class="pb-[50px] lg:pb-0 rounded-none md:rounded bg-gray-50 dark:bg-gray-800">
+    <!-- Actual Content -->
+    <div class="flex items-center gap-2 w-full" *ngIf="token" @fadeInOut>
+      <!-- Badge d'information du token -->
+      <div
+        class="group inline-flex items-center gap-2 h-10 px-3 bg-gradient-to-r from-gray-800/90 to-gray-800/70 backdrop-blur-sm rounded-lg border border-gray-700/50 hover:border-indigo-500/30 transition-all duration-200 shadow-sm">
+        <!-- Logo avec effet de pulsation au survol -->
+        <div class="relative">
+          <img [src]="token.logoURI" alt="Token"
+            class="w-6 h-6 rounded-full ring-1 ring-white/10 group-hover:ring-indigo-500/50 transition-all duration-300"
+            loading="lazy">
+          <div
+            class="absolute inset-0 bg-indigo-500/20 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-pulse transition-opacity duration-300">
+          </div>
+        </div>
+
+        <!-- Nom du token -->
+        <div class="flex flex-col justify-center relative group w-fit" (click)="toggleTooltip($event)" #tooltipTrigger>
+          <span
+            class="text-sm font-medium w-[48px] md:w-auto truncate text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-300 group-hover:from-indigo-300 group-hover:to-purple-300 transition-colors duration-300 cursor-help">
+            {{token?.name}}
+          </span>
+          <div
+          class="absolute bottom-full left-2/2 mb-2
+          bg-gray-800 text-white text-xs
+          rounded-lg shadow-lg px-0 py-0 z-[51]
+          w-max max-w-[80vw] transition-opacity duration-200
+          pointer-events-none"
+          [class.opacity-100]="showTooltip"
+          [class.opacity-0]="!showTooltip"
+          [class.pointer-events-auto]="showTooltip">
+            {{token?.name}}
+        </div>
+      </div>
+
+        <!-- Symbole du token -->
+        <div class="flex flex-col justify-center">
+          <span
+            class="text-[10px] font-medium text-gray-300 group-hover:text-indigo-300 transition-colors duration-300 truncate">
+            {{token.symbol.startsWith('$') ? '' : '$'}}{{ token.symbol }}
+          </span>
+        </div>
+
+        <!-- Adresse du créateur avec badge -->
+        <div
+          class="flex items-center gap-1 px-2 h-6 bg-green-900/20 group-hover:bg-green-900/30 rounded-md ml-2 transition-colors duration-200 border border-green-500/10">
+          <img
+            src="https://pump.mypinata.cloud/ipfs/QmeSzchzEPqCU1jwTnsipwcBAeH7S4bmVvFGfF65iA1BY1?img-width=16&img-dpr=2&img-onerror=redirect"
+            class="w-3 h-3" alt="Pump">
+          <span class="text-[10px] text-green-400 group-hover:text-green-300 transition-colors duration-200">
+            {{token.creator ? (token.creator | shortenAddress) : '-'}}
+          </span>
+        </div>
+      </div>
+
+      <!-- Conteneur principal avec flex -->
+      <div class="flex items-center gap-2" style="margin-left: auto;">
+        <!-- Contenu précédent à gauche si nécessaire -->
+
+        <!-- Container pour les badges alignés à droite -->
+        <div class="flex items-center gap-2 ml-auto">
+          <!-- Badge de capitalisation boursière -->
+          <div *ngIf="token && token.mc"
+            class="group flex items-center gap-1.5 h-10 px-3 border border-gray-700/50 hover:border-green-500/30 rounded-lg bg-gradient-to-r from-gray-800/90 to-gray-800/70 backdrop-blur-sm transition-all duration-200 shadow-sm">
+            <span
+              class="text-lg font-semibold text-green-400 group-hover:text-green-300 transition-colors duration-300"
+              [innerHTML]="token.mc | shortenNumber"></span>
+            <div class="flex flex-col justify-center">
+              <span
+                class="text-[10px] text-gray-400 uppercase tracking-wider group-hover:text-green-300/80 transition-colors duration-200">mcap</span>
+            </div>
+          </div>
+
+          <!-- Indicateur Live -->
+          <div *ngIf="token && token.is_currently_live"
+            class="group flex items-center gap-2 h-10 px-3 border border-gray-700/50 hover:border-red-500/30 rounded-lg bg-gradient-to-r from-gray-800/90 to-gray-800/70 backdrop-blur-sm transition-all duration-200 shadow-sm">
+            <div class="relative flex h-2.5 w-2.5">
+              <span
+                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+              <span
+                class="relative inline-flex rounded-full h-2.5 w-2.5 bg-gradient-to-r from-red-500 to-red-600 shadow-sm shadow-red-500/20"></span>
+            </div>
+            <span
+              class="text-sm font-medium text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-rose-300 group-hover:from-red-300 group-hover:to-rose-200 transition-colors duration-300">Live</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="grid grid-cols-12 mt-3">
+      <div class="col-span-12 md:col-span-12" @fadeInOut>
+        <div>
+          <app-livestream-broadcaster [count]="this.token.current_viewers" [coinId]="token.id"
+            *ngIf="token && solanaService?.session?.wallet_address && token.creator == solanaService.session.wallet_address"></app-livestream-broadcaster>
+          <app-livestream-viewer [count]="this.token.current_viewers" [coinId]="token.id"
+            *ngIf="token && token.is_currently_live && token?.creator != solanaService?.session?.wallet_address"></app-livestream-viewer>
+          <app-chat [avatarBottom]="avatarBottoms" (sendEvent)="eventChat($event)" [coinId]="token.id" *ngIf="token"></app-chat>
+
+        </div>
+      </div>
+      </div>
+  </div>
+  <div *ngIf="activeTab === 'settings'" class="p-4 rounded-lg bg-gray-50 dark:bg-gray-800">
+    <!-- Conteneur principal avec flex -->
+  <!-- Actual Content -->
+  <div class="flex items-center gap-2 w-full" *ngIf="token" @fadeInOut>
+    <!-- Badge d'information du token -->
+    <div
+      class="group inline-flex items-center gap-2 h-10 px-3 bg-gradient-to-r from-gray-800/90 to-gray-800/70 backdrop-blur-sm rounded-lg border border-gray-700/50 hover:border-indigo-500/30 transition-all duration-200 shadow-sm">
+      <!-- Logo avec effet de pulsation au survol -->
+      <div class="relative">
+        <img [src]="token.logoURI" alt="Token"
+          class="w-6 h-6 rounded-full ring-1 ring-white/10 group-hover:ring-indigo-500/50 transition-all duration-300"
+          loading="lazy">
+        <div
+          class="absolute inset-0 bg-indigo-500/20 rounded-full opacity-0 group-hover:opacity-100 group-hover:animate-pulse transition-opacity duration-300">
+        </div>
+      </div>
+
+      <!-- Nom du token -->
+      <div class="flex flex-col justify-center relative group w-fit" (click)="toggleTooltip($event)"
+      #tooltipTrigger>
+          <span
+            class="text-sm font-medium w-[48px] md:w-auto truncate text-transparent bg-clip-text bg-gradient-to-r from-white to-gray-300 group-hover:from-indigo-300 group-hover:to-purple-300 transition-colors duration-300 cursor-help">
+            {{token?.name}}
+          </span>
+          <div
+          class="absolute bottom-full left-2/2 mb-2
+          bg-gray-800 text-white text-xs
+          rounded-lg shadow-lg px-0 py-0 z-[51]
+          w-max max-w-[80vw] transition-opacity duration-200
+          pointer-events-none"
+          [class.opacity-100]="showTooltip"
+          [class.opacity-0]="!showTooltip"
+          [class.pointer-events-auto]="showTooltip">
+            {{token?.name}}
+        </div>
+      </div>
+
+      <!-- Symbole du token -->
+      <div class="flex flex-col justify-center">
+        <span
+          class="text-[10px] font-medium truncate text-gray-300 group-hover:text-indigo-300 transition-colors duration-300 truncate">
+          {{token.symbol.startsWith('$') ? '' : '$'}}{{ token.symbol }}
+        </span>
+      </div>
+
+      <!-- Adresse du créateur avec badge -->
+      <div
+        class="flex items-center gap-1 px-2 h-6 bg-green-900/20 group-hover:bg-green-900/30 rounded-md ml-2 transition-colors duration-200 border border-green-500/10">
+        <img
+          src="https://pump.mypinata.cloud/ipfs/QmeSzchzEPqCU1jwTnsipwcBAeH7S4bmVvFGfF65iA1BY1?img-width=16&img-dpr=2&img-onerror=redirect"
+          class="w-3 h-3" alt="Pump">
+        <span class="text-[10px]  truncate text-green-400 group-hover:text-green-300 transition-colors duration-200">
+          {{token.creator ? (token.creator | shortenAddress) : '-'}}
+        </span>
+      </div>
+    </div>
+
+    <!-- Conteneur principal avec flex -->
+    <div class="flex items-center gap-2" style="margin-left: auto;">
+      <!-- Contenu précédent à gauche si nécessaire -->
+
+      <!-- Container pour les badges alignés à droite -->
+      <div class="flex items-center gap-2 ml-auto">
+        <!-- Badge de capitalisation boursière -->
+        <div *ngIf="token && token.mc"
+          class="group flex items-center gap-1.5 h-10 px-3 border border-gray-700/50 hover:border-green-500/30 rounded-lg bg-gradient-to-r from-gray-800/90 to-gray-800/70 backdrop-blur-sm transition-all duration-200 shadow-sm">
+          <span
+            class="text-lg font-semibold text-green-400 group-hover:text-green-300 transition-colors duration-300"
+            [innerHTML]="token.mc | shortenNumber"></span>
+          <div class="flex flex-col justify-center">
+            <span
+              class="text-[10px] text-gray-400 uppercase tracking-wider group-hover:text-green-300/80 transition-colors duration-200">mcap</span>
+          </div>
+        </div>
+
+        <!-- Indicateur Live -->
+        <div *ngIf="token && token.is_currently_live"
+          class="group flex items-center gap-2 h-10 px-3 border border-gray-700/50 hover:border-red-500/30 rounded-lg bg-gradient-to-r from-gray-800/90 to-gray-800/70 backdrop-blur-sm transition-all duration-200 shadow-sm">
+          <div class="relative flex h-2.5 w-2.5">
+            <span
+              class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+            <span
+              class="relative inline-flex rounded-full h-2.5 w-2.5 bg-gradient-to-r from-red-500 to-red-600 shadow-sm shadow-red-500/20"></span>
+          </div>
+          <span
+            class="text-sm font-medium text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-rose-300 group-hover:from-red-300 group-hover:to-rose-200 transition-colors duration-300">Live</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+    <div class="col-span-12 lg:col-span-3" *ngIf="token">
+      <div class="mb-2 mt-2 lg:mt-0" @fadeInOut>
+        <app-swap *ngIf="token && coinId" [coinId]="coinId" [curve]="stateCurve" [token]="token"></app-swap>
+      </div>
+
+      <div class="mb-2" @fadeInOut>
+        <app-bonding-curve [coinId]="coinId" [curve]="stateCurve" [token]="token"
+          *ngIf="stateCurve && token.source == 'https://pump.fun'">
+        </app-bonding-curve>
+      </div>
+
+      <!-- Carte Token (hauteur max 250px) -->
+      <div
+        class="border border-gray-700 hover:border-indigo-500/50 rounded-lg shadow-md bg-gray-800/90 overflow-hidden transition-all duration-300 max-h-[250px]"
+        *ngIf="token">
+        <!-- Conteneur principal en flex row -->
+        <div class="flex">
+          <!-- Image à gauche avec fond, maintenue en évidence -->
+          <div class="flex-shrink-0 flex items-center justify-center bg-gray-900/80 p-1.5">
+            <img [src]="token.logoURI" [alt]="token.name" class="w-[85px] h-[85px] rounded-lg object-cover shadow-md" />
+          </div>
+
+          <!-- Contenu texte à droite -->
+          <div class="flex-1 flex flex-col p-2 overflow-hidden">
+            <!-- En-tête: Nom, Symbole et Market Cap sur deux lignes compactes -->
+            <div class="flex justify-start items-start mb-1">
+              <div>
+                <!-- Nom et symbole sur la même ligne -->
+                <div class="flex items-center gap-1.5">
+                  <h3 class="font-bold text-white text-sm truncate sm:max-w-[200px] max-w-[200px] lg:max-w-[130px]">{{ token.name }}</h3>
+                  <span class="text-xs text-gray-400 font-bold px-1.5 py-0.5 bg-gray-700/50 rounded">
+                    {{ token.symbol.startsWith('$') ? '' : '$' }}{{ token.symbol }}
+                  </span>
+                </div>
+
+                <!-- Market Cap et Badges dans une ligne compacte -->
+                <div class="flex items-center text-xs mt-0.5">
+                  <span class="text-green-300 flex items-center">
+                    MC: <span class="font-semibold ml-1" [innerHTML]="token.mc | shortenNumber"></span>
+                  </span>
+                  <div class="ml-1 flex" *ngIf="token.king || token.ray">
+                    <img *ngIf="token.ray" src="assets/images/migrated.webp" alt="Migrated" class="w-3 h-3" />
+                    <img *ngIf="token.king" src="assets/images/king.webp" alt="King" class="w-3 h-3" />
+                  </div>
+                  <div class="ml-2 text-blue-300" *ngIf="token.reply_count">
+                    <span class="opacity-70">posts:</span> {{ token.reply_count }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Horodatage à droite -->
+              <span class="text-[10px] text-gray-500">{{ token.timestamp | timeAgo }}</span>
+            </div>
+
+            <!-- Description avec hauteur limitée et défilement -->
+            <div class="relative flex-1 overflow-hidden mb-1.5 bg-gray-900/30 rounded p-1.5 min-h-[70px]">
+              <p class="text-xs text-gray-300 line-clamp-5 pr-1">
+                {{ token?.extensions?.description || 'No description available' }}
+              </p>
+
+            </div>
+
+            <!-- Footer compact -->
+            <div class="flex justify-between items-center">
+              <!-- Boutons d'action -->
+              <div class="flex gap-1.5">
+                <!-- <button
+                  class="text-[10px] px-2 py-0.5 rounded bg-gray-700 text-gray-300 hover:bg-indigo-500 hover:text-white transition-colors">
+                  Trade
+                </button>
+                <button
+                  class="text-[10px] px-2 py-0.5 rounded bg-gray-700 text-gray-300 hover:bg-indigo-500 hover:text-white transition-colors">
+                  Chart
+                </button> -->
+              </div>
+
+              <!-- Adresse du créateur -->
+              <span class="text-[10px] text-indigo-400 hover:underline">{{ token.creator | shortenAddress }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Boutons de réseaux sociaux à l'extérieur de la carte -->
+      <div class="flex justify-center mt-2" @fadeInOut>
+        <!-- Conteneur des boutons avec style moderne -->
+        <div *ngIf="token?.extensions?.twitter || token?.extensions?.telegram || token?.extensions?.website"
+          class="inline-flex gap-2 rounded-full bg-gray-800/80 backdrop-blur-sm p-1 mb-2 border border-gray-700/50 shadow-lg">
+          <!-- Bouton Twitter/X -->
+          <a [href]="token.extensions.twitter" target="_blank" *ngIf="token?.extensions?.twitter"
+            class="flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-300 rounded-full hover:bg-indigo-500 hover:text-white transition-all duration-200">
+            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 512 512">
+              <path
+                d="M389.2 48h70.6L305.6 224.2 487 464H345L233.7 318.6 106.5 464H35.8L200.7 275.5 26.8 48H172.4L272.9 180.9 389.2 48zM364.4 421.8h39.1L151.1 88h-42L364.4 421.8z" />
+            </svg>
+            <span>Twitter</span>
+          </a>
+
+          <!-- Bouton Telegram -->
+          <a [href]="token.extensions.telegram" target="_blank" *ngIf="token?.extensions?.telegram"
+            class="flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-300 rounded-full hover:bg-indigo-500 hover:text-white transition-all duration-200">
+            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 448 512">
+              <path
+                d="M446.7 98.6l-67.6 318.8c-5.1 22.5-18.4 28.1-37.3 17.5l-103-75.9-49.7 47.8c-5.5 5.5-10.1 10.1-20.7 10.1l7.4-104.9 190.9-172.5c8.3-7.4-1.8-11.5-12.9-4.1L117.8 284 16.2 252.2c-22.1-6.9-22.5-22.1 4.6-32.7L418.2 66.4c18.4-6.9 34.5 4.1 28.5 32.2z" />
+            </svg>
+            <span>Telegram</span>
+          </a>
+
+          <!-- Bouton Website -->
+          <a [href]="token.extensions.website" target="_blank" *ngIf="token?.extensions?.website"
+            class="flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-300 rounded-full hover:bg-indigo-500 hover:text-white transition-all duration-200">
+            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
+              <path
+                d="M14.645,2.428a8.1,8.1,0,0,0-1.61-.3,9.332,9.332,0,0,0-3.6.28l-.07.02a9.928,9.928,0,0,0,.01,19.15,9.091,9.091,0,0,0,2.36.34,1.274,1.274,0,0,0,.27.02,9.65,9.65,0,0,0,2.63-.36,9.931,9.931,0,0,0,.01-19.15Z" />
+            </svg>
+            <span>Website</span>
+          </a>
+        </div>
+      </div>
+
+
+      <div>
+        <app-top-holder [coinId]="coinId" [token]="token" @fadeInOut></app-top-holder>
+      </div>
+
+    </div>
+  </div>
+  <div>
+    <app-avatar-viewer #avatarBottoms></app-avatar-viewer>
+  </div>
+
+  <!-- Onglets (Header) -->
+  <div class="fixed bottom-[-1px] left-0 w-full bg-gray-900/95 backdrop-blur-sm border-t border-gray-800/50 shadow-lg z-50 transition-all duration-300">
+    <ul class="flex text-sm font-medium text-center text-white">
+      <li class="w-1/3" role="presentation">
+        <button
+          class="flex flex-col items-center justify-center w-full p-3"
+          [ngClass]="{
+            'text-purple-600 border-t-2 border-purple-600': activeTab === 'profile',
+            'text-gray-400 hover:text-gray-200 border-t-2 border-transparent': activeTab !== 'profile'
+          }"
+          (click)="setActiveTab('profile')">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h4l3 8 4-16 3 8h4" />
+          </svg>
+          <span>Chart</span>
+        </button>
+      </li>
+      <li class="w-1/3" role="presentation">
+        <button
+          class="flex flex-col items-center justify-center w-full p-3"
+          [ngClass]="{
+            'text-purple-600 border-t-2 border-purple-600': activeTab === 'tchat',
+            'text-gray-400 hover:text-gray-200 border-t-2 border-transparent': activeTab !== 'tchat'
+          }"
+          (click)="setActiveTab('tchat')">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <span>Message</span>
+        </button>
+      </li>
+      <li class="w-1/3" role="presentation">
+        <button
+          class="flex flex-col items-center justify-center w-full p-3"
+          [ngClass]="{
+            'text-purple-600 border-t-2 border-purple-600': activeTab === 'settings',
+            'text-gray-400 hover:text-gray-200 border-t-2 border-transparent': activeTab !== 'settings'
+          }"
+          (click)="setActiveTab('settings')">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 1.343-3 3s1.343 3 3 3m0-6v6m0 0a3 3 0 100-6z" />
+          </svg>
+          <span>Buy</span>
+        </button>
+      </li>
+    </ul>
+  </div>
+</div>
+
+<div *ngIf="deviceType != 'mobile' && deviceType != 'tablet' && deviceType != 'laptop'" class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white p-4 md:px-4" id="limiteDrag">
   <app-edit-avatar [isOpen]="false"></app-edit-avatar>
   <div class="grid grid-cols-12 gap-4">
     <div class="col-span-12 lg:col-span-9">
@@ -126,8 +644,7 @@
               *ngIf="token && solanaService?.session?.wallet_address && token.creator == solanaService.session.wallet_address"></app-livestream-broadcaster>
             <app-livestream-viewer [count]="this.token.current_viewers" [coinId]="token.id"
               *ngIf="token && token.is_currently_live && token?.creator != solanaService?.session?.wallet_address"></app-livestream-viewer>
-            <app-chat [avatarBottom]="avatarBottoms" (sendEvent)="eventChat($event)" [coinId]="token.id" *ngIf="token"></app-chat>
-
+              <app-top-holder [coinId]="coinId" [token]="token" @fadeInOut></app-top-holder>
           </div>
         </div>
         <div class="col-span-8 md:col-span-8" @fadeInOut>
@@ -167,13 +684,15 @@
             <div class="flex justify-between items-start mb-1">
               <div>
                 <!-- Nom et symbole sur la même ligne -->
-                <div class="flex items-center gap-1.5">
-                  <h3 class="font-bold text-white text-sm truncate max-w-[120px]">{{ token.name }}</h3>
-                  <span class="text-xs text-gray-400 font-bold px-1.5 py-0.5 bg-gray-700/50 rounded">
+                <div class="flex flex-wrap items-center gap-x-1.5">
+                  <h3 class="font-bold text-white text-sm">
+                    {{ token.name }}
+                  </h3>
+                  <span class="text-xs text-gray-400 font-bold px-1.5 py-0.5 bg-gray-700/50 rounded mt-1 basis-full sm:basis-auto sm:mt-0">
                     {{ token.symbol.startsWith('$') ? '' : '$' }}{{ token.symbol }}
                   </span>
-                </div>
-
+                </div>                
+                
                 <!-- Market Cap et Badges dans une ligne compacte -->
                 <div class="flex items-center text-xs mt-0.5">
                   <span class="text-green-300 flex items-center">
@@ -223,10 +742,10 @@
       </div>
 
       <!-- Boutons de réseaux sociaux à l'extérieur de la carte -->
-      <div class="flex justify-center mt-2 mb-2" @fadeInOut>
+      <div class="flex justify-center mb-2" @fadeInOut>
         <!-- Conteneur des boutons avec style moderne -->
-        <div
-          class="inline-flex gap-2 rounded-full bg-gray-800/80 backdrop-blur-sm p-1 border border-gray-700/50 shadow-lg">
+        <div *ngIf="token?.extensions?.twitter || token?.extensions?.telegram || token?.extensions?.website"
+          class="inline-flex gap-2 rounded-full bg-gray-800/80 backdrop-blur-sm p-1 mt-2 border border-gray-700/50 shadow-lg">
           <!-- Bouton Twitter/X -->
           <a [href]="token.extensions.twitter" target="_blank" *ngIf="token?.extensions?.twitter"
             class="flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-300 rounded-full hover:bg-indigo-500 hover:text-white transition-all duration-200">
@@ -250,10 +769,8 @@
           <!-- Bouton Website -->
           <a [href]="token.extensions.website" target="_blank" *ngIf="token?.extensions?.website"
             class="flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-300 rounded-full hover:bg-indigo-500 hover:text-white transition-all duration-200">
-            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24">
-              <path
-                d="M14.645,2.428a8.1,8.1,0,0,0-1.61-.3,9.332,9.332,0,0,0-3.6.28l-.07.02a9.928,9.928,0,0,0,.01,19.15,9.091,9.091,0,0,0,2.36.34,1.274,1.274,0,0,0,.27.02,9.65,9.65,0,0,0,2.63-.36,9.931,9.931,0,0,0,.01-19.15Z" />
-            </svg>
+            
+            <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" fill="currentColor" width="35" zoomAndPan="magnify" viewBox="0 0 20.5 35.499999" height="35" preserveAspectRatio="xMidYMid meet" version="1.2"><defs><clipPath id="d7a19b045b"><path d="M 11.101562 11.101562 L 25.90625 11.101562 L 25.90625 25.90625 L 11.101562 25.90625 Z M 11.101562 11.101562 "/></clipPath></defs><g id="68b79f038f"><g clip-rule="nonzero" clip-path="url(#d7a19b045b)"><path style=" stroke:none;fill-rule:nonzero;fill:#FFFFFF;fill-opacity:1;" d="M 23.738281 13.269531 C 22.339844 11.871094 20.480469 11.101562 18.503906 11.101562 C 16.527344 11.101562 14.667969 11.871094 13.269531 13.269531 C 11.871094 14.667969 11.101562 16.527344 11.101562 18.503906 C 11.101562 20.480469 11.871094 22.339844 13.269531 23.738281 C 14.667969 25.132812 16.527344 25.90625 18.503906 25.90625 C 20.480469 25.90625 22.339844 25.132812 23.738281 23.738281 C 25.132812 22.339844 25.90625 20.480469 25.90625 18.503906 C 25.90625 16.527344 25.132812 14.667969 23.738281 13.269531 Z M 11.921875 18.503906 C 11.921875 17.679688 12.074219 16.890625 12.351562 16.160156 L 15.011719 16.160156 C 14.894531 16.90625 14.832031 17.695312 14.832031 18.503906 C 14.832031 19.285156 14.890625 20.046875 15 20.769531 L 12.324219 20.769531 C 12.0625 20.0625 11.921875 19.300781 11.921875 18.503906 Z M 15.652344 18.503906 C 15.652344 17.691406 15.714844 16.898438 15.84375 16.160156 L 18.09375 16.160156 L 18.09375 20.769531 L 15.828125 20.769531 C 15.710938 20.054688 15.652344 19.289062 15.652344 18.503906 Z M 20.4375 13.730469 C 20.664062 14.214844 20.851562 14.757812 20.996094 15.34375 L 18.914062 15.34375 L 18.914062 11.996094 C 19.46875 12.199219 20.007812 12.808594 20.4375 13.730469 Z M 18.09375 11.996094 L 18.09375 15.34375 L 16.011719 15.34375 C 16.15625 14.757812 16.34375 14.214844 16.566406 13.730469 C 17 12.808594 17.539062 12.199219 18.09375 11.996094 Z M 18.09375 21.589844 L 18.09375 25.011719 C 17.539062 24.804688 17 24.199219 16.566406 23.273438 C 16.332031 22.773438 16.140625 22.203125 15.996094 21.589844 Z M 18.914062 25.011719 L 18.914062 21.589844 L 21.011719 21.589844 C 20.867188 22.203125 20.671875 22.773438 20.4375 23.273438 C 20.007812 24.199219 19.46875 24.804688 18.914062 25.011719 Z M 18.914062 20.769531 L 18.914062 16.160156 L 21.164062 16.160156 C 21.289062 16.898438 21.355469 17.691406 21.355469 18.503906 C 21.355469 19.289062 21.292969 20.054688 21.175781 20.769531 Z M 21.992188 16.160156 L 24.65625 16.160156 C 24.933594 16.890625 25.085938 17.679688 25.085938 18.503906 C 25.085938 19.300781 24.945312 20.0625 24.683594 20.769531 L 22.003906 20.769531 C 22.117188 20.046875 22.175781 19.285156 22.175781 18.503906 C 22.175781 17.695312 22.113281 16.90625 21.992188 16.160156 Z M 24.277344 15.34375 L 21.835938 15.34375 C 21.671875 14.628906 21.453125 13.96875 21.179688 13.386719 C 20.96875 12.933594 20.734375 12.546875 20.480469 12.222656 C 22.109375 12.738281 23.464844 13.871094 24.277344 15.34375 Z M 16.527344 12.222656 C 16.269531 12.546875 16.035156 12.933594 15.824219 13.386719 C 15.554688 13.96875 15.335938 14.628906 15.171875 15.34375 L 12.730469 15.34375 C 13.539062 13.871094 14.898438 12.738281 16.527344 12.222656 Z M 12.691406 21.589844 L 15.15625 21.589844 C 15.320312 22.332031 15.546875 23.019531 15.824219 23.621094 C 16.035156 24.070312 16.269531 24.460938 16.527344 24.78125 C 14.871094 24.257812 13.496094 23.097656 12.691406 21.589844 Z M 20.480469 24.78125 C 20.734375 24.460938 20.96875 24.070312 21.179688 23.621094 C 21.460938 23.019531 21.6875 22.332031 21.851562 21.589844 L 24.316406 21.589844 C 23.511719 23.097656 22.136719 24.257812 20.480469 24.78125 Z M 20.480469 24.78125 "/></g></g></svg>
             <span>Website</span>
           </a>
         </div>
@@ -261,7 +778,7 @@
 
 
       <div>
-        <app-top-holder [coinId]="coinId" [token]="token" @fadeInOut></app-top-holder>
+        <app-chat [avatarBottom]="avatarBottoms" (sendEvent)="eventChat($event)" [coinId]="token.id" *ngIf="token"></app-chat>
       </div>
 
     </div>

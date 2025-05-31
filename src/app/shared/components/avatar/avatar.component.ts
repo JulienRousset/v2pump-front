@@ -38,8 +38,12 @@ export class AvatarComponent implements OnChanges {
         private sanitizer: DomSanitizer,
         public avatarService: AvatarService,
         private svgAssetsService: SvgAssetsService,
-    ) { }
-
+    ) { this.updateSize() }
+    updateSize() {
+        const isLargeScreen = window.innerWidth >= 1024; // Tailwind lg = 1024px
+        this.width = isLargeScreen ? 100 : 45;
+        this.height = isLargeScreen ? 100 : 45;
+      }
     ngOnChanges(changes: SimpleChanges): void {
         if (changes['encodedAvatar'] || changes['width'] || changes['height']) {
             this.generateAvatar();

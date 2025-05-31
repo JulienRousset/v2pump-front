@@ -26,7 +26,7 @@
             </div>
 
             <!-- Section centrale visible uniquement sur grand écran (lg) -->
-            <div class="flex-1 hidden lg:flex justify-center">
+            <div class="flex-1 xl:flex hidden justify-center">
                 <div class="flex items-center space-x-1">
                     <!-- Pump -->
                     <a routerLink="/leaderboard" routerLinkActive="bg-indigo-500/10 text-indigo-400 border-indigo-500"
@@ -125,7 +125,7 @@
             </div>
 
             <!-- Menu hamburger pour petit écran -->
-            <button class="md:hidden p-2 rounded-lg text-gray-400 hover:text-indigo-400 hover:bg-gray-800/70 ml-2 transition-colors">
+            <button class="lg:hidden p-2 rounded-lg text-gray-400 hover:text-indigo-400 hover:bg-gray-800/70 ml-2 transition-colors">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
@@ -133,7 +133,7 @@
         </div>
         
         <!-- Section des liens sous la barre de recherche (visible sur md mais pas sur lg ou sm) -->
-        <div class="hidden md:flex lg:hidden justify-center pb-2 -mt-1">
+        <div class="lg:flex xl:hidden hidden justify-center pb-2 -mt-1">
             <div class="flex items-center space-x-4">
                 <!-- Pump (version optimisée pour la rangée du bas) -->
                 <a routerLink="/leaderboard" routerLinkActive="text-indigo-400"
@@ -179,7 +179,7 @@
     </div>
 
     <!-- Menu mobile (pour petit écran) -->
-    <div class="md:hidden hidden">
+    <div class="lg:hidden hidden">
         <div class="px-2 pt-2 pb-3 space-y-1 bg-gray-900/95 backdrop-blur-sm border-t border-gray-800/50">
             <a routerLink="/leaderboard" routerLinkActive="bg-indigo-500/20 text-indigo-400"
                 class="flex items-center space-x-2 text-gray-300 px-3 py-2 rounded-md">
@@ -195,6 +195,6 @@
 </nav>
 
 <!-- Spacer ajusté pour tenir compte de la hauteur supplémentaire sur tablette -->
-<div class="h-16 md:h-[5.5rem] lg:h-16"></div>
+<div class="h-16 lg:h-[5.5rem] xl:h-16"></div>
 
 <ngx-modal-search [(isOpen)]="openModal" (ngModelChange)="onSearchChange($event)" [msg]="msg"></ngx-modal-search>

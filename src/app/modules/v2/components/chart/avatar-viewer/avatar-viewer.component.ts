@@ -1,4 +1,4 @@
-import { Component, Input} from '@angular/core';
+import { Component, Input, HostListener} from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { WebsocketApiService } from 'src/app/websocketapi.service';
 import { SocketIoTransactionService } from 'src/app/socket-io-transaction.service';
@@ -17,12 +17,30 @@ export class AvatarViewerComponent  {
   loading: boolean = true;
   error: boolean = false;
   bars:any = [];
+  width = 35;
+  height = 35;
+
   constructor(
     private http: HttpClient,
     public wsService: SocketIoTransactionService,
     public solanaService: SolanaService,
   ) { }
 
-  ngOnInit() {}
+  @HostListener('window:resize')
+  
+  onResize() {
+    this.updateSize();
+  }
+  
+  ngOnInit() {
+    this.updateSize();
+  }
+  
+  updateSize() {
+    const isLargeScreen = window.innerWidth >= 1024; // Tailwind lg = 1024px
+    this.width = isLargeScreen ? 100 : 35;
+    this.height = isLargeScreen ? 100 : 35;
+  }
+  
 
 }
