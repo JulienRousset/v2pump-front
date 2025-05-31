@@ -20,4 +20,36 @@
     width: calc(100% + 25px);
     height: 80px; /* Limite de 35 lignes */
   }
-  
+
+/* Pour masquer la barre de défilement tout en maintenant la fonctionnalité */
+.scrollbar-hide {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE et Edge */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari et Opera */
+}
+
+/* Configurations du container carousel */
+#carousel-container {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden; /* Empêche le défilement vertical */
+  position: relative;
+  scroll-behavior: smooth; /* Pour un défilement fluide */
+  -webkit-overflow-scrolling: touch; /* Défilement fluide sur iOS */
+}
+
+/* Style pour la ligne de cartes */
+#carousel-container .ml-0.flex {
+  display: flex;
+  flex-wrap: nowrap; /* Empêche le retour à la ligne */
+  width: max-content; /* Permet à la rangée de s'étendre au-delà de la largeur visible */
+}
+
+/* Pour que les cartes restent en format normal */
+#carousel-container .coin-item {
+  flex: 0 0 auto; /* Empêche les éléments de rétrécir */
+  white-space: normal; /* Permet le retour à la ligne du texte à l'intérieur des cartes */
+}
