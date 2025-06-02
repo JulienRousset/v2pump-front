@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, NgZone } from '@angular/core';
+import { Component, OnInit, OnDestroy, NgZone, HostListener } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, interval, Subscription } from 'rxjs';
 import { SocketFeatureService, CoinData } from 'src/app/socketFeature.service';
@@ -38,6 +38,15 @@ import { animate, query, stagger, style, transition, trigger } from '@angular/an
         animate('0.2s ease-out', style({ opacity: 1, transform: 'scale(1)' })),
       ])
     ]),
+      trigger('fadeSlideIn', [
+        transition(':enter', [
+          style({ opacity: 0, transform: 'translateY(-6px)' }),
+          animate('200ms ease-out', style({ opacity: 1, transform: 'translateY(0)' })),
+        ]),
+        transition(':leave', [
+          animate('150ms ease-in', style({ opacity: 0, transform: 'translateY(-6px)' }))
+        ])
+      ])
   ],
 })
 export class HomeComponent implements OnInit, OnDestroy {
@@ -58,6 +67,8 @@ export class HomeComponent implements OnInit, OnDestroy {
   dexscreenerData: any = null;
   dexscreenerNextUpdate: Date | null = null;
   private dexscreenerCheckInterval: Subscription | null = null;
+  hoveredCoinId: string | null = null;
+  hoveredCoin: any = null;
 
   sortOptions = [
     { value: 'featured', label: 'Featured 🔥' },
@@ -67,7 +78,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   private subscriptions: Subscription[] = [];
   private historySubscription: Subscription | null = null;
   private coinSubscription: Subscription | null = null;
-
+  public showTooltip = false;
   constructor(
     private socketFeatureService: SocketFeatureService, 
     private ngZone: NgZone,
@@ -101,6 +112,16 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     // Initialiser la surveillance de Dexscreener
     this.initDexscreenerMonitoring();
+  }
+
+  @HostListener('mouseenter')
+  onMouseEnter() {
+    this.showTooltip = true;
+  }
+  
+  @HostListener('mouseleave')
+  onMouseLeave() {
+    this.showTooltip = false;
   }
 
   // Nouvelle méthode pour initialiser la surveillance de Dexscreener
@@ -233,6 +254,12 @@ export class HomeComponent implements OnInit, OnDestroy {
   changeSort(sort: any) {
     // Votre logique de tri ici
   }
+
+  getChangeClass(value: number): string {
+    if (value > 0) return 'text-green-400';
+    if (value < 0) return 'text-red-400';
+    return 'text-gray-400';
+  }  
 
   ngOnDestroy() {
     // Nettoyer tous les abonnements

@@ -31,6 +31,25 @@
   display: none; /* Chrome, Safari et Opera */
 }
 
+/* Styles pour la scrollbar personnalisée */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+.scrollbar-track-transparent::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thumb-indigo-600::-webkit-scrollbar-thumb {
+  background: rgba(79, 70, 229, 0.3);
+  border-radius: 4px;
+}
+
+.scrollbar-thumb-indigo-600::-webkit-scrollbar-thumb:hover {
+  background: rgba(79, 70, 229, 0.6);
+}
+
 /* Configurations du container carousel */
 #carousel-container {
   width: 100%;
@@ -52,4 +71,10 @@
 #carousel-container .coin-item {
   flex: 0 0 auto; /* Empêche les éléments de rétrécir */
   white-space: normal; /* Permet le retour à la ligne du texte à l'intérieur des cartes */
+}
+
+/* global styles.css */
+.scroll-inertia {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
 }

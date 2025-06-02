@@ -496,75 +496,158 @@
             </section>
         </div> -->
 
-        <div id="carousel-container" class="scrollbar-hide overflow-x-auto">
+        <div id="carousel-container" class="scrollbar-hide">
             <section class="relative mb-4 w-full mt-4">
                 <div class="mb-2 flex items-center justify-between">
                     <div class="text-[16px] font-semibold text-white">DEXSCREENER</div>
                 </div>
 
                 <div class="relative w-full overflow-hidden px-0">
-                    <div class="touch-pan-x touch-pan-y overflow-auto pl-0">
+                    <div class="touch-pan-x touch-pan-y overflow-auto pl-0 scrollbar-thin scrollbar-thumb-indigo-600 scrollbar-track-transparent">
                         <div class="ml-0 flex pl-0" style="transform: translate3d(0px, 0px, 0px);">
 
-                            <div class="coin-item flex-shrink-0" style="margin-right: 12px;"
+                            <div class="coin-item flex-shrink-0 mr-3 mb-3"
                                 *ngFor="let coin of dexscreenerData">
-                                <div class="relative overflow-visible" style="width: 280px; max-width: 280px;">
-                                    <a draggable="false" class="block w-full" [routerLink]="'/coin/' + coin.mint">
+                                <div class="relative overflow-visible" style="width: 180px; max-width: 180px;">
+
                                         <div
-                                            class="border border-gray-700 hover:border-indigo-500/50 rounded-lg shadow-lg bg-gray-800/90 overflow-hidden transition-all duration-300 p-2 flex flex-col relative h-[160px] group">
-                                            <div class="flex items-start gap-2 mb-1">
-                                                <div class="flex-shrink-0 relative">
-                                                    <img draggable="false" loading="lazy"
-                                                        class="w-12 h-12 rounded-lg object-cover shadow-md group-hover:shadow-indigo-500/20 transition-all duration-300"
-                                                        [src]="coin.image_uri" [alt]="coin.name">
-                                                    <div
-                                                        class="absolute inset-0 bg-indigo-500/10 opacity-0 group-hover:opacity-100 rounded-lg transition-opacity duration-300">
-                                                    </div>
-                                                </div>
-                                                <div class="flex-1 text-sm leading-tight">
-                                                    <div class="flex flex-col gap-0.5">
-                                                        <div [appAutoResizeText]="coin.name" [maxFontSize]="16"
-                                                            [minFontSize]="10"
-                                                            class="text-sm font-bold text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-indigo-300 group-hover:to-purple-300 transition-colors duration-300">
-                                                            {{coin.name}}</div>
-                                                        <div
-                                                            class="inline-flex px-1 py-0.5 bg-gray-700/50 rounded text-xs text-gray-300 font-medium w-fit">
-                                                            {{ coin.symbol.startsWith('$') ? '' : '$' }}{{ coin.symbol
-                                                            }}
+                                            class="border border-gray-700 hover:border-indigo-500/50 rounded-lg shadow-lg bg-gray-800/90 overflow-hidden transition-all duration-300 p-2 flex flex-col relative h-[150px] group">
+                                            <a draggable="true" class="block w-full" [routerLink]="'/coin/' + coin.mint">
+                                                <div class="flex items-start gap-2 mb-1">
+                                                    <div class="flex items-center gap-3 relative group">
+                                                        <!-- Image -->
+                                                        <div class="flex-shrink-0">
+                                                        <img draggable="false" loading="lazy"
+                                                            class="w-12 h-12 rounded-lg object-cover shadow-md group-hover:shadow-indigo-500/20 transition-all duration-300"
+                                                            [src]="coin.image_uri" [alt]="coin.name">
                                                         </div>
-                                                    </div>
-                                                    <div class="flex items-center mt-0.5">
-                                                        <div class="flex items-center text-xs text-green-400">
+                                                    
+                                                        <!-- Texte -->
+                                                        <div class="flex-1 text-sm leading-tight">
+                                                        <div class="flex flex-col gap-0.5">
+                                                            <div [appAutoResizeText]="coin.name" [title]="coin.name" [maxFontSize]="16" [minFontSize]="10"
+                                                                class="truncate w-[100px] text-sm font-bold text-white group-hover:text-transparent group-hover:bg-clip-text group-hover:bg-gradient-to-r group-hover:from-indigo-300 group-hover:to-purple-300 transition-colors duration-300">
+                                                                {{coin.name}}</div>
+                                                            <div
+                                                                class="inline-flex px-1 py-0.5 bg-gray-700/50 rounded text-xs text-gray-300 font-medium w-fit">
+                                                                {{ coin.symbol.startsWith('$') ? '' : '$' }}{{ coin.symbol
+                                                                }}
+                                                            </div>
+                                                        </div>
+                                                        <div class="flex items-center mt-0.5">
+                                                            <div class="flex items-center text-xs text-green-400">
                                                             <span class="text-gray-400">MC:</span>
-                                                            <span class="font-semibold ml-1">${{ coin.market_cap |
-                                                                shortenNumber }}</span>
+                                                            <span class="font-semibold ml-1">${{ coin.market_cap | shortenNumber }}</span>
+                                                            </div>
                                                         </div>
+                                                        </div>
+                                                    
+                                                        <!-- Hover overlay -->
+                                                        <div class="absolute inset-0 bg-indigo-500/10 opacity-0 group-hover:opacity-100 rounded-lg transition-opacity duration-300"></div>
                                                     </div>
+                                                    
+                                                </div>
+                                            </a>
+                                            <!-- Boutons de réseaux sociaux à l'extérieur de la carte -->
+                                            <div class="min-h-[35px] mb-[15px] flex justify-center mt-2" @fadeInOut>
+                                                <!-- Conteneur des boutons avec style moderne -->
+                                                <div *ngIf="coin?.twitter || coin?.telegram || coin?.website"
+                                                class="inline-flex gap-2 rounded-full bg-gray-800/80 backdrop-blur-sm p-1 border border-gray-700/50 shadow-lg">
+                                                <!-- Bouton Twitter/X -->
+                                                <a [href]="coin?.twitter" target="_blank" *ngIf="coin?.twitter"
+                                                    class="flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-300 rounded-full hover:bg-indigo-500 hover:text-white transition-all duration-200">
+                                                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 512 512">
+                                                    <path
+                                                        d="M389.2 48h70.6L305.6 224.2 487 464H345L233.7 318.6 106.5 464H35.8L200.7 275.5 26.8 48H172.4L272.9 180.9 389.2 48zM364.4 421.8h39.1L151.1 88h-42L364.4 421.8z" />
+                                                    </svg>
+                                                </a>
+
+                                                <!-- Bouton Telegram -->
+                                                <a [href]="coin?.telegram" target="_blank" *ngIf="coin?.telegram"
+                                                    class="flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-300 rounded-full hover:bg-indigo-500 hover:text-white transition-all duration-200">
+                                                    <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 448 512">
+                                                    <path
+                                                        d="M446.7 98.6l-67.6 318.8c-5.1 22.5-18.4 28.1-37.3 17.5l-103-75.9-49.7 47.8c-5.5 5.5-10.1 10.1-20.7 10.1l7.4-104.9 190.9-172.5c8.3-7.4-1.8-11.5-12.9-4.1L117.8 284 16.2 252.2c-22.1-6.9-22.5-22.1 4.6-32.7L418.2 66.4c18.4-6.9 34.5 4.1 28.5 32.2z" />
+                                                    </svg>
+                                                </a>
+
+                                                <!-- Bouton Website -->
+                                                <a [href]="coin?.website" target="_blank" *ngIf="coin?.website"
+                                                    class="flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-300 rounded-full hover:bg-indigo-500 hover:text-white transition-all duration-200">
+                                                    🌐
+                                                </a>
                                                 </div>
                                             </div>
-                                            <div class="relative flex-grow mb-4">
-                                                <div
-                                                    class="absolute inset-0 bg-gray-900/30 rounded-lg border border-gray-700/20 overflow-hidden">
-                                                    <div class="p-2">
-                                                        <p class="text-xs text-gray-300 line-clamp-3">
-                                                            {{ coin.description || 'No description available' }}
-
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </div>
-
                                             <div
-                                                class="absolute bottom-1.5 left-2 right-2 flex justify-between items-center text-xs pt-0.5 border-t border-gray-700/30">
-                                                <span class="text-gray-500">3500 holders</span>
-                                                <span
-                                                    class="text-indigo-400 group-hover:text-indigo-300 transition-colors duration-200">+5%</span>
-                                            </div>
+                                                class="relative bottom-1.5 mb-2 mr-2 flex justify-between items-center text-xs pt-0.5 border-t border-gray-700/30">
+                                                
+                                                <span class="text-gray-500">
+                                                    {{ coin.currentStats.holders || 'No holder' }} Holders
+                                                </span>
 
+                                                <!-- Groupe de survol -->
+                                                <div class="relative group" (mouseenter)="hoveredCoin = coin"
+                                                (mouseleave)="hoveredCoin = null">
+                                                    <!-- Pourcentage (l'élément survolé) -->
+                                                    <span
+                                                    [ngClass]="{
+                                                        'text-green-400': coin.currentStats.priceChanges['24h'] > 0,
+                                                        'text-red-400': coin.currentStats.priceChanges['24h'] < 0
+                                                    }"
+                                                    class="group-hover:text-indigo-300 transition-colors duration-200 font-semibold cursor-default"
+                                                    >
+                                                    {{ coin.currentStats.priceChanges['24h'] * 100 | number:'1.2-2' }} %
+                                                    </span>
+
+                                                    
+                                                </div>
+                                                </div>
 
                                         </div>
-                                    </a>
+                                   
                                 </div>
+                                <!-- Tooltip (affiché uniquement au survol du span ci-dessus) -->
+                                <div
+                                *ngIf="hoveredCoin === coin"
+                                class="absolute mt-[-130px] z-50 w-max bg-indigo-900/90 border border-indigo-500/30 rounded-xl shadow-lg p-3 text-xs text-white top-full"
+                                [@fadeSlideIn]>
+
+                                <div class="text-center mb-2 text-sm tracking-wide font-semibold text-indigo-300 uppercase">
+                                    Price changes
+                                </div>
+
+                                <table class="min-w-max w-full text-left border-separate border-spacing-x-3 text-[0.75rem] font-mono">
+                                    <thead class="text-indigo-400 border-b border-indigo-500/20">
+                                    <tr>
+                                        <th class="pb-1">1m</th>
+                                        <th class="pb-1">5m</th>
+                                        <th class="pb-1">30m</th>
+                                        <th class="pb-1">1h</th>
+                                        <th class="pb-1">24h</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr class="text-white">
+                                        <td [ngClass]="getChangeClass(coin.currentStats.priceChanges['1m'])">
+                                        {{ coin.currentStats.priceChanges['1m'] * 100 | number:'1.2-2' }}%
+                                        </td>
+                                        <td [ngClass]="getChangeClass(coin.currentStats.priceChanges['5m'])">
+                                        {{ coin.currentStats.priceChanges['5m'] * 100 | number:'1.2-2' }}%
+                                        </td>
+                                        <td [ngClass]="getChangeClass(coin.currentStats.priceChanges['30m'])">
+                                        {{ coin.currentStats.priceChanges['30m'] * 100 | number:'1.2-2' }}%
+                                        </td>
+                                        <td [ngClass]="getChangeClass(coin.currentStats.priceChanges['1h'])">
+                                        {{ coin.currentStats.priceChanges['1h'] * 100 | number:'1.2-2' }}%
+                                        </td>
+                                        <td [ngClass]="getChangeClass(coin.currentStats.priceChanges['24h'])">
+                                        {{ coin.currentStats.priceChanges['24h'] * 100 | number:'1.2-2' }}%
+                                        </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                                </div>
+
                             </div>
                         </div>
                     </div>
