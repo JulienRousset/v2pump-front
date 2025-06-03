@@ -1,6 +1,33 @@
 /* You can add global styles to this file, and also import other style files */
 
-html, body { height: 100%; background: #1f2936;}
+html, body { height: 100%; background: var(--color-bg-primary);}
+
+:root {
+    /* === Background === */
+    --color-bg-primary: #10171D;     /* fond principal (très sombre) */
+    --color-bg-secondary: #192229;   /* fond secondaire (légèrement plus clair) */
+    --color-bg-card: #394b57;        /* fond de carte, survols ou containers */
+  
+    /* === Texte === */
+    --color-text-primary: #e9f9ff;   /* texte principal, très lisible */
+    --color-text-secondary: #b7e3f9; /* texte secondaire, légendes */
+    --color-text-muted: #537fa2;     /* texte tertiaire, informations ou désactivés */
+  
+    /* === Accent / Interactions === */
+    --color-accent: #537fa2;         /* couleur d'accent (boutons, liens actifs) */
+    --color-accent-light: #b7e3f9;   /* accent clair pour hover, focus */
+    --color-accent-contrast: #e9f9ff;/* pour texte sur bouton accentué */
+  
+    /* === Bordures / Éléments UI === */
+    --color-border: #2b3a45;         /* pour les bordures subtiles */
+    --color-divider: #1c2a33;        /* pour séparer des sections */
+  
+    /* === État (optionnel) === */
+    --color-success: #4fd1c5;        /* vert menthe pour un "succès" */
+    --color-warning: #f6ad55;        /* orange doux pour les alertes */
+    --color-error: #f56565;          /* rouge doux pour erreurs */
+  }
+  
 
 @tailwind base;
 @tailwind components;
