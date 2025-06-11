@@ -37,7 +37,7 @@ export class AvatarService {
     [WidgetType.Glasses]: { zIndex: 90 },
     [WidgetType.Mouth]: { zIndex: 105 },
     [WidgetType.Beard]: { zIndex: 100 },
-    [WidgetType.Tops]: { zIndex: 80 },
+    [WidgetType.Tops]: { zIndex: 100 },
     [WidgetType.Clothes]: { zIndex: 110 }
   };
 
@@ -56,18 +56,33 @@ export class AvatarService {
     beardShape: Object.values(BeardShape),
     clothesShape: Object.values(ClothesShape),
     commonColors: [
-      '#6BD9E9', '#FC909F', '#F4D150', '#E0DDFF',
-      '#D2EFF3', '#FFEDEF', '#FFEBA4', '#506AF4',
-      '#F48150', '#48A99A', '#C09FFF', '#FD6F5D'
+      '#FF6B6B', // rouge corail pop
+      '#FEC260', // orange chaud moderne
+      '#9DF9EF', // menthe néon
+      '#A66DD4', // violet vibrant
+      '#00D26A', // vert crypto style succès
+      '#FFD6E8', // rose pastel vaporwave
+      '#92E3A9', // vert doux fun
+      '#FF9CEE', // rose fluo acidulé
+      '#6C5CE7', // indigo tech
+      '#FFB86C', // pêche néon
+      '#18A0FB', // bleu UI moderne
+      '#FCE38A'  // jaune soft soleil
+    ],    
+    skinColors: [
+      '#b7e3f9', '#e9f9ff',
+      '#F8D9CE', '#F9C9B6', '#DEB3A3',
+      '#C89583', '#9C6458'
     ],
-    skinColors: ['#F8D9CE', '#F9C9B6', '#DEB3A3', '#C89583', '#9C6458'],
     backgroundColor: [
-      '#6BD9E9', '#FC909F', '#F4D150', 
-      'linear-gradient(45deg, #E3648C, #D97567)',
-      'linear-gradient(62deg, #8EC5FC, #E0C3FC)',
+      '#FF9CEE', '#9DF9EF', '#FFD6E8',
+      'linear-gradient(45deg, #FF6B6B, #FEC260)',
+      'linear-gradient(60deg, #8EC5FC, #E0C3FC)', // déjà existant
       'transparent'
     ],
-    borderColor: ['#6BD9E9', '#FC909F', '#F4D150', 'transparent']
+    borderColor: [
+      '#FF6B6B', '#FEC260', '#9DF9EF', 'transparent'
+    ]    
   };
 
   getRandomValue<T>(array: T[], avoid: T[] = []): T {
@@ -127,10 +142,10 @@ export class AvatarService {
       },
       [WidgetType.Tops]: {
         shape: gender === Gender.Male ? 
-          this.getRandomValue([TopsShape.Clean, TopsShape.Funny, TopsShape.Beanie]) : 
-          this.getRandomValue([TopsShape.Pixie, TopsShape.Wave, TopsShape.Danny]),
+          this.getRandomValue([TopsShape.Clean, TopsShape.Funny]) : 
+          this.getRandomValue([TopsShape.Danny, TopsShape.Caplogo]),
         fillColor: this.getRandomColor(),
-        zIndex: 80
+        zIndex: 100
       },
       [WidgetType.Clothes]: {
         shape: this.getRandomValue(this.SETTINGS.clothesShape),
@@ -223,8 +238,6 @@ getWidgetShapes(type: WidgetType): string[] {
   switch (type) {
     case WidgetType.Face:
       return this.SETTINGS.faceShape;
-    case WidgetType.Tops:
-      return this.SETTINGS.topsShape;
     case WidgetType.Ear:
       return this.SETTINGS.earShape;
     case WidgetType.Earrings:
@@ -237,6 +250,8 @@ getWidgetShapes(type: WidgetType): string[] {
       return this.SETTINGS.noseShape;
     case WidgetType.Glasses:
       return this.SETTINGS.glassesShape;
+    case WidgetType.Tops:
+      return this.SETTINGS.topsShape;
     case WidgetType.Mouth:
       return this.SETTINGS.mouthShape;
     case WidgetType.Beard:

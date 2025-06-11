@@ -1,32 +1,32 @@
 <div [ngClass]="{'opacity-0 pointer-events-none': !isOpen, 'opacity-100': isOpen}"
-  class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-900/80 backdrop-blur-sm transition-all duration-300"
+  class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-bg-primary/70 backdrop-blur-sm transition-all duration-300"
   (click)="closeModal()">
 
-  <div class="relative w-full max-w-[1200px] bg-gray-900 border border-gray-700/50 rounded-xl shadow-2xl 
+  <div class="relative w-full max-w-5xl  bg-bg-primary/70 border border-gray-700/50 rounded-xl shadow-2xl 
               transition-all duration-300 overflow-hidden"
     [ngClass]="{'scale-95 opacity-0': !isOpen, 'scale-100 opacity-100': isOpen}" (click)="$event.stopPropagation()">
 
 
     <div class="relative w-full "> <!-- Conteneur pour aligner le pseudo et la box -->
       <!-- Section Pseudo -->
-      <div class="p-3 flex items-center gap-3">
-        <div class="relative group flex-shrink-0">
+      <div class="p-3 flex gap-3">
+        <div class="relative group flex-shrink-0 ml-auto">
           <input type="text" [(ngModel)]="username" name="username" placeholder="Enter your pseudo" class="w-64 px-4 py-2 bg-gray-800/50 border border-gray-700/50 rounded-xl
                         text-gray-200 text-sm placeholder-gray-500
-                        focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20
+                        focus:outline-none focus:border-text-muted/50 focus:ring-2 focus:ring-text-muted/20
                         transition-all duration-300 backdrop-blur-sm">
 
-          <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-pink-500/20 
+          <div class="absolute inset-0 rounded-xl bg-gradient-to-r from-text-muted/20 via-text-secondary/20 to-text-muted/20 
                       opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10 blur-xl">
           </div>
         </div>
 
         <button (click)="checkUsername()" [disabled]="isLoading" class="relative group px-4 py-2 rounded-xl flex-shrink-0
-                       bg-gradient-to-br from-indigo-500 to-purple-500
-                       hover:from-indigo-600 hover:to-purple-600
-                       text-white text-sm font-medium
+                       bg-gradient-to-br from-text-muted to-text-secondary 
+                       hover:from-accent to-accent-light hover:text-gray-400
+                       text-bg-primary text-sm font-medium
                        transition-all duration-300
-                       shadow-lg shadow-indigo-500/25
+                       shadow-lg shadow-text-muted/25
                        disabled:opacity-50 disabled:cursor-not-allowed">
           <!-- Spinner de chargement -->
           <div *ngIf="isLoading"
@@ -64,17 +64,20 @@
 
 
       <!-- Configurateur principal -->
-      <div class="bg-gray-900 border border-gray-700/50 w-full h-[600px] flex overflow-hidden shadow-2xl">
-
+      <div class="bg-bg-secondary border border-gray-700/50 w-full h-[600px] flex overflow-auto shadow-2xl">
+        
         <div class="flex-1 p-6 relative">
           <!-- Boutons en haut à gauche -->
           <div class="absolute top-6 left-6 flex flex-col gap-2 z-20">
             <!-- Actions rapides -->
-            <div class="bg-gray-800/80 backdrop-blur-sm rounded-2xl p-1.5 border border-gray-700/30
+            <div class="bg-bg-secondary backdrop-blur-sm rounded-2xl p-1.5 border border-gray-700/30
                       shadow-lg shadow-black/20">
-              <button class="p-2 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20
-                           hover:from-indigo-500/40 hover:to-purple-500/40
-                           text-gray-300 hover:text-white transition-all duration-200" (click)="handleFlip()"
+              <button class="p-2 rounded-xl bg-border hover:bg-divider
+              text-text-secondary hover:text-text-contrast
+              text-sm font-medium
+              rounded-xl shadow-sm
+              transition-all duration-200
+              disabled:opacity-50 disabled:cursor-not-allowed" (click)="handleFlip()"
                 title="Flip">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -83,12 +86,12 @@
               </button>
             </div>
 
-            <!-- Actions d'historique -->
-            <div class="bg-gray-800/80 backdrop-blur-sm rounded-2xl p-1.5 border border-gray-700/30
+            <!-- Actions d'historique 
+            <div class="bg-bg-secondary backdrop-blur-sm rounded-2xl p-1.5 border border-gray-700/30
                       shadow-lg shadow-black/20 flex flex-col gap-1">
-              <button class="p-2 rounded-xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20
-                           hover:from-indigo-500/40 hover:to-purple-500/40
-                           text-gray-300 hover:text-white transition-all duration-200
+              <button class="p-2 rounded-xl bbg-gradient-to-br from-text-muted to-text-secondary 
+              hover:from-accent to-accent-light hover:text-gray-400
+              text-bg-primary  transition-all duration-200
                            disabled:opacity-50 disabled:hover:from-transparent disabled:hover:to-transparent"
                 (click)="handleUndo()" [disabled]="!canUndo" title="Undo">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -106,22 +109,28 @@
                     d="M14 5l7 7m0 0l-7 7m7-7H3" />
                 </svg>
               </button>
-            </div>
+            </div>-->
 
             <!-- Actions principales -->
-            <div class="bg-gray-800/80 backdrop-blur-sm rounded-2xl p-1.5 border border-gray-700/30
+            <div class="bg-bg-secondary backdrop-blur-sm rounded-2xl p-1.5 border border-gray-700/30
                       shadow-lg shadow-black/20 flex flex-col gap-1">
-              <button class="p-2 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-500
-                           hover:from-indigo-600 hover:to-purple-600
-                           text-white transition-all duration-200" (click)="handleGenerate()" title="Randomize">
+              <button class="p-2 rounded-xl bg-border hover:bg-divider
+              text-text-secondary hover:text-text-contrast
+              text-sm font-medium
+              rounded-xl shadow-sm
+              transition-all duration-200
+              disabled:opacity-50 disabled:cursor-not-allowed" (click)="handleGenerate()" title="Randomize">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
                     d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
               </button>
-              <button class="p-2 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500
-                           hover:from-purple-600 hover:to-pink-600
-                           text-white transition-all duration-200
+              <button class="p-2 rounded-xl bg-border hover:bg-divider
+              text-text-secondary hover:text-text-contrast
+              text-sm font-medium
+              rounded-xl shadow-sm
+              transition-all duration-200
+              disabled:opacity-50 disabled:cursor-not-allowed
                            disabled:opacity-50" [disabled]="downloading" (click)="handleDownload()" title="Download">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
@@ -167,13 +176,13 @@
                 </textarea>
 
                 <div class="absolute bottom-2 right-3 text-[10px] text-gray-500">
-                  {{ biography?.length || 0 }}/150
+                  {{ biography.length || 0 }}/150
                 </div>
 
 
         
 
-                <div class="absolute inset-0 rounded-2xl bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-pink-500/20 
+                <div class="absolute inset-0 rounded-2xl bg-gradient-to-r from-text-muted/20 via-text-secondary/20 to-text-muted/20
                             opacity-0 group-hover:opacity-100 transition-opacity duration-300 -z-10">
                 </div>
               </div>
@@ -199,12 +208,12 @@
 
           <!-- Bouton Save en bas à droite -->
           <button (click)="saveBiography()" [disabled]="isLoadingBio || biography.length >= 150" class="absolute bottom-3 right-5 px-4 py-2 rounded-xl
-       bg-gradient-to-br from-indigo-500 to-purple-500
-       hover:from-indigo-600 hover:to-purple-600
-       text-white shadow-lg shadow-indigo-500/25
-       transition-all duration-300 group
-       flex items-center gap-2
-       disabled:opacity-50 disabled:cursor-not-allowed">
+            bg-gradient-to-br from-accent to-accent-light
+            hover:from-accent-light hover:to-accent
+            text-text-dark text-sm font-medium
+            px-4 py-2 rounded-xl shadow-lg shadow-accent/30
+            transition-all duration-300 group flex items-center gap-2
+            disabled:opacity-50 disabled:cursor-not-allowed">
 
             <!-- Spinner de chargement -->
             <div *ngIf="isLoadingBio"

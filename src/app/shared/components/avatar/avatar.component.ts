@@ -158,20 +158,53 @@ export class AvatarComponent implements OnChanges {
                             break;
 
 
-                        case WidgetType.Clothes:
-                            const clothesPath = await this.svgAssetsService.getClothesPath(widget.shape as ClothesShape).toPromise();
-                            if (clothesPath.includes('<path')) {
-                                baseGroup += currentElement + clothesPath.replace(/fill="[^"]*"/, `fill="${widget.fillColor}"`) + '</g>';
-                            } else {
-                                baseGroup += currentElement + `
-                     <path 
-                       d="${clothesPath}" 
-                       fill="${widget.fillColor}"
-                       stroke="none"
-                     />
-                   </g>`;
-                            }
-                            break;
+                            case WidgetType.Clothes:
+                                const clothesPath = await this.svgAssetsService.getClothesPath(widget.shape as ClothesShape).toPromise();
+                              
+                                if (clothesPath.includes('<path')) {
+                                  // Remplace tous les fill existants et ajoute un fill s'il est manquant
+                                  const updatedPaths = clothesPath
+                                    // Remplace tous les attributs fill="..." par le bon
+                                    .replace(/fill="[^"]*"/g, `fill="${widget.fillColor}"`)
+                                    // Ajoute fill si absent du path
+                                    .replace(/<path\b(?![^>]*fill=)/g, `<path fill="${widget.fillColor}"`);
+                              
+                                  baseGroup += currentElement + updatedPaths + '</g>';
+                                } else {
+                                  // Cas rare : un d seul, sans <path>
+                                  baseGroup += currentElement + `
+                                    <path 
+                                      d="${clothesPath}" 
+                                      fill="${widget.fillColor}"
+                                      stroke="none"
+                                    />
+                                  </g>`;
+                                }
+                                break;
+                        case WidgetType.Glasses:
+                                    const glassesPath = await this.svgAssetsService.getGlassesPath(widget.shape as GlassesShape).toPromise();
+                                  
+                                    if (glassesPath.includes('<path')) {
+                                      // Remplace tous les fill existants et ajoute un fill s'il est manquant
+                                      const updatedPaths = glassesPath
+                                        // Remplace tous les attributs fill="..." par le bon
+                                        .replace(/fill="[^"]*"/g, `fill="${widget.fillColor}"`)
+                                        // Ajoute fill si absent du path
+                                        .replace(/<path\b(?![^>]*fill=)/g, `<path fill="${widget.fillColor}"`);
+                                  
+                                      baseGroup += currentElement + updatedPaths + '</g>';
+                                    } else {
+                                      // Cas rare : un d seul, sans <path>
+                                      baseGroup += currentElement + `
+                                        <path 
+                                          d="${glassesPath}" 
+                                          fill="${widget.fillColor}"
+                                          stroke="none"
+                                        />
+                                      </g>`;
+                                    }
+                                    break;        
+                              
 
                         case WidgetType.Ear:
                             const paths = await this.svgAssetsService.getEarPath(widget.shape as EarShape).toPromise();
@@ -261,7 +294,7 @@ export class AvatarComponent implements OnChanges {
                .stroked { stroke-linecap: round; stroke-linejoin: round; }
              </style>
            </defs>
-           <g transform=" ${this.noPadding ? 'translate(60, 65)' : 'translate(100, 65)'}">
+           <g transform=" ${this.noPadding ? 'translate(60, 65)' : 'translate(100, 71)'}">
            ${baseGroup}
            ${otherElements}
            </g>

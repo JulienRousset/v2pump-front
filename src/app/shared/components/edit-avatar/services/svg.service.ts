@@ -53,8 +53,8 @@ export class SvgAssetsService {
     getBeardPath(shape: BeardShape, isPreview: boolean = false): Observable<string> {
         const basePath = isPreview ? this.PREVIEW_PATH : this.WIDGET_PATH;
         switch (shape) {
-            case BeardShape.Scruff:
-                return this.loadSvg(`${basePath}/beard/scruff.svg`);
+       //     case BeardShape.Scruff:
+        //        return this.loadSvg(`${basePath}/beard/scruff.svg`);
             default:
                 return of('');
         }
@@ -74,12 +74,10 @@ export class SvgAssetsService {
     getClothesPath(shape: ClothesShape, isPreview: boolean = false): Observable<string> {
         const basePath = isPreview ? this.PREVIEW_PATH : this.WIDGET_PATH;
         switch (shape) {
-            case ClothesShape.Crew:
-                return this.loadSvg(`${basePath}/clothes/crew.svg`);
-            case ClothesShape.Open:
-                return this.loadSvg(`${basePath}/clothes/open.svg`);
-            case ClothesShape.Collared:
-                return this.loadSvg(`${basePath}/clothes/collared.svg`);
+            case ClothesShape.Tshirt:
+                return this.loadSvg(`${basePath}/clothes/T-shirt.svg`);
+            case ClothesShape.Pull:
+                return this.loadSvg(`${basePath}/clothes/pull.svg`);
             default:
                 return of('');
         }
@@ -113,14 +111,14 @@ export class SvgAssetsService {
     getEyebrowsPath(shape: EyebrowsShape, isPreview: boolean = false): Observable<string> {
         const basePath = isPreview ? this.PREVIEW_PATH : this.WIDGET_PATH;
         switch (shape) {
-            case EyebrowsShape.Up:
-                return this.loadSvg(`${basePath}/eyebrows/up.svg`);
-            case EyebrowsShape.Down:
-                return this.loadSvg(`${basePath}/eyebrows/down.svg`);
-            case EyebrowsShape.Eyelashesup:
-                return this.loadSvg(`${basePath}/eyebrows/eyelashesup.svg`);
-            case EyebrowsShape.Eyelashesdown:
-                return this.loadSvg(`${basePath}/eyebrows/eyelashesdown.svg`);
+           // case EyebrowsShape.Up:
+             //   return this.loadSvg(`${basePath}/eyebrows/up.svg`);
+           // case EyebrowsShape.Down:
+            //    return this.loadSvg(`${basePath}/eyebrows/down.svg`);
+            //case EyebrowsShape.Eyelashesup:
+            //    return this.loadSvg(`${basePath}/eyebrows/eyelashesup.svg`);
+           // case EyebrowsShape.Eyelashesdown:
+             //   return this.loadSvg(`${basePath}/eyebrows/eyelashesdown.svg`);
             default:
                 return of('');
         }
@@ -129,14 +127,14 @@ export class SvgAssetsService {
     getEyesPath(shape: EyesShape, isPreview: boolean = false): Observable<string> {
         const basePath = isPreview ? this.PREVIEW_PATH : this.WIDGET_PATH;
         switch (shape) {
-            case EyesShape.Round:
-                return this.loadSvg(`${basePath}/eyes/round.svg`);
-            case EyesShape.Ellipse:
-                return this.loadSvg(`${basePath}/eyes/ellipse.svg`);
-            case EyesShape.Smiling:
-                return this.loadSvg(`${basePath}/eyes/smiling.svg`);
-            case EyesShape.Eyeshadow:
-                return this.loadSvg(`${basePath}/eyes/eyeshadow.svg`);
+          //  case EyesShape.Round:
+          //      return this.loadSvg(`${basePath}/eyes/round.svg`);
+          //  case EyesShape.Ellipse:
+          //      return this.loadSvg(`${basePath}/eyes/ellipse.svg`);
+          //  case EyesShape.Smiling:
+          //      return this.loadSvg(`${basePath}/eyes/smiling.svg`);
+          //  case EyesShape.Eyeshadow:
+          //      return this.loadSvg(`${basePath}/eyes/eyeshadow.svg`);
             default:
                 return of('');
         }
@@ -145,22 +143,22 @@ export class SvgAssetsService {
     getMouthPath(shape: MouthShape, isPreview: boolean = false): Observable<string> {
         const basePath = isPreview ? this.PREVIEW_PATH : this.WIDGET_PATH;
         switch (shape) {
-            case MouthShape.Smile:
-                return this.loadSvg(`${basePath}/mouth/smile.svg`);
-            case MouthShape.Laughing:
-                return this.loadSvg(`${basePath}/mouth/laughing.svg`);
-            case MouthShape.Surprised:
-                return this.loadSvg(`${basePath}/mouth/surprised.svg`);
-            case MouthShape.Sad:
-                return this.loadSvg(`${basePath}/mouth/sad.svg`);
-            case MouthShape.Pucker:
-                return this.loadSvg(`${basePath}/mouth/pucker.svg`);
-            case MouthShape.Frown:
-                return this.loadSvg(`${basePath}/mouth/frown.svg`);
-            case MouthShape.Smirk:
-                return this.loadSvg(`${basePath}/mouth/smirk.svg`);
-            case MouthShape.Nervous:
-                return this.loadSvg(`${basePath}/mouth/nervous.svg`);
+     //       case MouthShape.Smile:
+     //           return this.loadSvg(`${basePath}/mouth/smile.svg`);
+     //       case MouthShape.Laughing:
+     //           return this.loadSvg(`${basePath}/mouth/laughing.svg`);
+     //       case MouthShape.Surprised:
+      //          return this.loadSvg(`${basePath}/mouth/surprised.svg`);
+       //     case MouthShape.Sad:
+        //        return this.loadSvg(`${basePath}/mouth/sad.svg`);
+        //    case MouthShape.Pucker:
+        //        return this.loadSvg(`${basePath}/mouth/pucker.svg`);
+        //    case MouthShape.Frown:
+       //         return this.loadSvg(`${basePath}/mouth/frown.svg`);
+          //  case MouthShape.Smirk:
+        //        return this.loadSvg(`${basePath}/mouth/smirk.svg`);
+      //      case MouthShape.Nervous:
+    //            return this.loadSvg(`${basePath}/mouth/nervous.svg`);
             default:
                 return of('');
         }
@@ -169,12 +167,12 @@ export class SvgAssetsService {
     getNosePath(shape: NoseShape, isPreview: boolean = false): Observable<string> {
         const basePath = isPreview ? this.PREVIEW_PATH : this.WIDGET_PATH;
         switch (shape) {
-            case NoseShape.Round:
-                return this.loadSvg(`${basePath}/nose/round.svg`);
-            case NoseShape.Pointed:
-                return this.loadSvg(`${basePath}/nose/pointed.svg`);
-            case NoseShape.Curve:
-                return this.loadSvg(`${basePath}/nose/curve.svg`);
+         //   case NoseShape.Round:
+         //       return this.loadSvg(`${basePath}/nose/round.svg`);
+         //   case NoseShape.Pointed:
+         //       return this.loadSvg(`${basePath}/nose/pointed.svg`);
+         //   case NoseShape.Curve:
+         //       return this.loadSvg(`${basePath}/nose/curve.svg`);
             default:
                 return of('');
         }
@@ -183,10 +181,10 @@ export class SvgAssetsService {
     getGlassesPath(shape: GlassesShape, isPreview: boolean = false): Observable<string> {
         const basePath = isPreview ? this.PREVIEW_PATH : this.WIDGET_PATH;
         switch (shape) {
-            case GlassesShape.Round:
-                return this.loadSvg(`${basePath}/glasses/round.svg`);
-            case GlassesShape.Square:
-                return this.loadSvg(`${basePath}/glasses/square.svg`);
+            case GlassesShape.Ski:
+                return this.loadSvg(`${basePath}/glasses/ski.svg`);
+            case GlassesShape.Trail:
+                return this.loadSvg(`${basePath}/glasses/trail.svg`);
             default:
                 return of('');
         }
@@ -197,22 +195,12 @@ export class SvgAssetsService {
         switch (shape) {
             case TopsShape.Clean:
                 return this.loadSvg(`${basePath}/tops/clean.svg`);
-            case TopsShape.Wave:
-                return this.loadSvg(`${basePath}/tops/wave.svg`);
-            case TopsShape.Pixie:
-                return this.loadSvg(`${basePath}/tops/pixie.svg`);
             case TopsShape.Danny:
                 return this.loadSvg(`${basePath}/tops/danny.svg`);
-            case TopsShape.Fonze:
-                return this.loadSvg(`${basePath}/tops/fonze.svg`);
+            case TopsShape.Caplogo:
+                return this.loadSvg(`${basePath}/tops/caplogo.svg`);
             case TopsShape.Funny:
                 return this.loadSvg(`${basePath}/tops/funny.svg`);
-            case TopsShape.Punk:
-                return this.loadSvg(`${basePath}/tops/punk.svg`);
-            case TopsShape.Beanie:
-                return this.loadSvg(`${basePath}/tops/beanie.svg`);
-            case TopsShape.Turban:
-                return this.loadSvg(`${basePath}/tops/turban.svg`);
             default:
                 return of('');
         }

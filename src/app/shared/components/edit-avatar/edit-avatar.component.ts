@@ -17,7 +17,9 @@ import { catchError, finalize } from 'rxjs/operators';
 })
 export class EditAvatarComponent implements OnInit {
   @ViewChild('avatarRef') avatarRef!: ElementRef;
-
+  @Input() user: any;
+  @Input() picture: any;
+  public _isOpen = false;
   // Configuration
   avatarSize = 280;
   downloading = false;
@@ -26,7 +28,7 @@ export class EditAvatarComponent implements OnInit {
   svgContent = '';
   biography = '';
 
-  username: string = '';
+  username: string = 'kk';
   exists: any = false;
   checked: boolean = false;
   isLoading: boolean = false;
@@ -52,9 +54,12 @@ export class EditAvatarComponent implements OnInit {
   get isOpen(): boolean {
     return this._isOpen;
   }
-  public _isOpen = false;
+
   @Output() isOpenChange = new EventEmitter<boolean>();
 
+  @Output() avatarUpdated = new EventEmitter<AvatarOption>();
+
+  @Output() userUpdated = new EventEmitter<any>();
 
   // History Management
   private history: AvatarOption[] = [];
@@ -80,11 +85,95 @@ export class EditAvatarComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    this.generateAvatar();
+    console.log('picture', this.picture)
+    console.log('user', this.user)
+    console.log(this.avatarOptionSubject.value)
+    if (typeof this.picture === 'string') {
+      try {
+        this.picture = JSON.parse(this.picture);
+      } catch (e) {
+        console.warn('Erreur de parsing JSON sur picture', e);
+        this.picture = null;
+      }
+    }
+    
+    if (this.picture?.m && this.picture?.d) {
+      const unpacked = this.unpackAvatar(this.picture);
+      this.avatarOptionSubject.next(unpacked);
+    } else {
+      this.generateAvatar(); // fallback
+    }
+  
+    
+    this.username = this.user.name;
+    this.biography = this.user.description;
+    this.updateSize();
+    if(!this.picture){
+      this.generateAvatar();
+    }
     this.avatarOption$.subscribe(() => {
       this.updateSvgContent();
     });
   }
+
+  updateSize() {
+    const isLargeScreen = window.innerWidth >= 1024; // Tailwind lg = 1024px
+    this.avatarSize = isLargeScreen ? 280 : 180;
+  }
+
+  private unpackAvatar(packed: any): AvatarOption {
+    if (!packed?.m || !Array.isArray(packed.m) || !packed.d) {
+      console.warn('Invalid packed avatar format', packed);
+      return {} as AvatarOption;
+    }
+  
+    const mapArray: [string, string][] = packed.m;
+    const data = packed.d;
+  
+    const shortToFull: { [key: string]: string } = {};
+    for (const [full, short] of mapArray) {
+      shortToFull[short] = full;
+    }
+  
+    const unpacked: any = {};
+  
+    for (const shortKey in data) {
+      const fullKey = shortToFull[shortKey];
+      const value = data[shortKey];
+  
+      // Gestion spéciale pour les widgets
+      if (shortKey === 'i') {
+        const widgets: any = {};
+        for (const widgetShortKey in value) {
+          const widgetFullKey = shortToFull[widgetShortKey] || widgetShortKey;
+          widgets[widgetFullKey] = {
+            shape: value[widgetShortKey].s,
+            fillColor: value[widgetShortKey].fc,
+            zIndex: value[widgetShortKey].z,
+          };
+        }
+        unpacked['widgets'] = widgets;
+      }
+  
+      // Gestion spéciale pour background
+      else if (shortKey === 'b') {
+        unpacked['background'] = {
+          color: value.c,
+          borderColor: value.bc,
+        };
+      }
+  
+      // Autres cas simples
+      else {
+        unpacked[fullKey] = value;
+      }
+    }
+  
+    return unpacked;
+  }
+  
+  
+  
 
   saveBiography() {
     if (this.biography.length >= 60) {
@@ -142,6 +231,13 @@ export class EditAvatarComponent implements OnInit {
   closeModal() {
     this.isOpen = false;
     this.isOpenChange.emit(false);
+    this.avatarUpdated.emit(this.avatarOptionSubject.value);
+    let user = {
+      description: this.biography,
+      picture: this.currentAvatar,
+      name: this.username
+    }
+    this.userUpdated.emit(user);
   }
 
   // Avatar Generation
@@ -340,12 +436,12 @@ export class EditAvatarComponent implements OnInit {
               } else {
                 // Pour les données de chemin brutes
                 otherElements += currentElement + `
-      <path 
-        d="${topsPath}" 
-        fill="${widget.fillColor}"
-        stroke="none"
-      />
-    </g>`;
+                <path 
+                  d="${topsPath}" 
+                  fill="${widget.fillColor}"
+                  stroke="none"
+                />
+              </g>`;
               }
               break;
 
@@ -376,20 +472,54 @@ export class EditAvatarComponent implements OnInit {
               break;
 
 
-            case WidgetType.Clothes:
-              const clothesPath = await this.svgAssetsService.getClothesPath(widget.shape as ClothesShape).toPromise();
-              if (clothesPath.includes('<path')) {
-                baseGroup += currentElement + clothesPath.replace(/fill="[^"]*"/, `fill="${widget.fillColor}"`) + '</g>';
-              } else {
-                baseGroup += currentElement + `
-                  <path 
-                    d="${clothesPath}" 
-                    fill="${widget.fillColor}"
-                    stroke="none"
-                  />
-                </g>`;
-              }
-              break;
+              case WidgetType.Clothes:
+                const clothesPath = await this.svgAssetsService.getClothesPath(widget.shape as ClothesShape).toPromise();
+              
+                if (clothesPath.includes('<path')) {
+                  // Remplace tous les fill existants et ajoute un fill s'il est manquant
+                  const updatedPaths = clothesPath
+                    // Remplace tous les attributs fill="..." par le bon
+                    .replace(/fill="[^"]*"/g, `fill="${widget.fillColor}"`)
+                    // Ajoute fill si absent du path
+                    .replace(/<path\b(?![^>]*fill=)/g, `<path fill="${widget.fillColor}"`);
+              
+                  baseGroup += currentElement + updatedPaths + '</g>';
+                } else {
+                  // Cas rare : un d seul, sans <path>
+                  baseGroup += currentElement + `
+                    <path 
+                      d="${clothesPath}" 
+                      fill="${widget.fillColor}"
+                      stroke="none"
+                    />
+                  </g>`;
+                }
+                break;
+
+                case WidgetType.Glasses:
+                                    const glassesPath = await this.svgAssetsService.getGlassesPath(widget.shape as GlassesShape).toPromise();
+                                  
+                                    if (glassesPath.includes('<path')) {
+                                      // Remplace tous les fill existants et ajoute un fill s'il est manquant
+                                      const updatedPaths = glassesPath
+                                        // Remplace tous les attributs fill="..." par le bon
+                                        .replace(/fill="[^"]*"/g, `fill="${widget.fillColor}"`)
+                                        // Ajoute fill si absent du path
+                                        .replace(/<path\b(?![^>]*fill=)/g, `<path fill="${widget.fillColor}"`);
+                                  
+                                      baseGroup += currentElement + updatedPaths + '</g>';
+                                    } else {
+                                      // Cas rare : un d seul, sans <path>
+                                      baseGroup += currentElement + `
+                                        <path 
+                                          d="${glassesPath}" 
+                                          fill="${widget.fillColor}"
+                                          stroke="none"
+                                        />
+                                      </g>`;
+                                    }
+                                    break;
+              
 
             case WidgetType.Ear:
               const paths = await this.svgAssetsService.getEarPath(widget.shape as EarShape).toPromise();
@@ -459,7 +589,7 @@ export class EditAvatarComponent implements OnInit {
             .stroked { stroke-linecap: round; stroke-linejoin: round; }
           </style>
         </defs>
-        <g transform="translate(100, 65)">
+        <g transform="translate(100, 71)">
         ${baseGroup}
         ${otherElements}
         </g>
@@ -499,8 +629,7 @@ export class EditAvatarComponent implements OnInit {
   private shouldBeStroked(widgetType: WidgetType): boolean {
     return [
       WidgetType.Eyebrows,
-      WidgetType.Nose,
-      WidgetType.Glasses
+      WidgetType.Nose
     ].includes(widgetType);
   }
 

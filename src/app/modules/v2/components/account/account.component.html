@@ -1,12 +1,12 @@
-<app-edit-avatar [(isOpen)]="openEdit"></app-edit-avatar>
+<app-edit-avatar *ngIf="userData" [user]="userData" [picture]="userData.picture" [(isOpen)]="openEdit" (userUpdated)="handleUserUpdate($event)" (avatarUpdated)="handleAvatarUpdate($event)"></app-edit-avatar>
 
-<div class="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black text-white">
+<div class="min-h-screen bg-gradient-to-br from-bg-card via-bg-secondary to-black text-white animate-gradient-slow bg-[length:400%_400%]">
     <div class="container mx-auto px-4 md:px-6 lg:px-8 py-6">
 
-        <div class="max-w-6xl flex mx-auto items-center justify-between w-full z-1">
-            <div class="flex items-center">
+        <div class="max-w-5xl flex mx-auto items-end justify-between w-full z-1">
+            <div class="flex items-end">
                 <div class="-mb-1 relative group">
-                    <app-avatar [encodedAvatar]="userData.picture ? userData.picture : '-'" [width]="70" [height]="70"
+                    <app-avatar *ngIf="userData.picture" [encodedAvatar]="userData.picture ? userData.picture : '-'" [width]="70" [height]="70"
                         [noPadding]="true"
                         class="transform transition-transform duration-300 group-hover:scale-105"></app-avatar>
                 </div>
@@ -14,10 +14,13 @@
                 <div class="ml-2">
                     <span class="text-xl font-semibold">{{userData.name ? userData.name : '-'}}</span>
                 </div>
+                <div class="ml-2">
+                    <span class="text-xl font-semibold">| {{userData.description ? userData.description : 'No description'}}</span>
+                </div>
             </div>
 
             <!-- Icône crayon à droite -->
-            <div class="cursor-pointer hover:text-gray-600" (click)="openEdit = true">
+            <div class="cursor-pointer hover:text-gray-600 mb-1" (click)="openEdit = true">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
                     stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -25,11 +28,14 @@
                 </svg>
             </div>
         </div>
+        <div *ngIf="!tokens.items">
+            loading
+        </div>
         <!-- Container Principal -->
-        <div class="max-w-6xl mx-auto bg-gray-900 rounded-lg shadow-xl overflow-hidden z-2">
+        <div *ngIf="tokens.items" class="max-w-5xl mx-auto bg-bg-secondary rounded-lg shadow-xl overflow-hidden z-2">
 
             <!-- Section Table -->
-            <div class="p-4">
+            <div class="p-1">
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm">
                         <!-- En-tête du tableau -->
@@ -43,6 +49,19 @@
 
                         <!-- Corps du tableau -->
                         <tbody class="divide-y divide-gray-700/50">
+                            <div *ngIf="tokens.items.length === 0">
+                                <tr class="hover:bg-gray-700/50 bg-gray-700/10 transition-colors">
+                                    <!-- Colonne Token -->
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center gap-3">
+                                            <!-- Logo Token -->
+                                            <div class="w-full h-10 rounded-full overflow-hidden">
+                                                You don't have any token
+                                            </div>            
+                                        </div>
+                                    </td>
+                                </tr>
+                            </div>
                             <ng-container *ngFor="let item of tokens.items">
                                 <tr class="hover:bg-gray-700/50 bg-gray-700/10 transition-colors">
                                     <!-- Colonne Token -->
@@ -50,7 +69,7 @@
                                         <div class="flex items-center gap-3">
                                             <!-- Logo Token -->
                                             <div class="w-10 h-10 rounded-full overflow-hidden">
-                                                <img [src]="item.logoURI" alt="Fortuna"
+                                                <img [src]="item.icon" [alt]="item.name"
                                                     class="w-full h-full object-cover">
                                             </div>
 
@@ -58,6 +77,9 @@
                                             <div>
                                                 <p class="font-medium text-white text-base">
                                                     {{item.name}}<span class="text-gray-400"></span>
+                                                </p>
+                                                <p class="font-medium text-white text-base">
+                                                    {{item.symbol}}<span class="text-gray-400"></span>
                                                 </p>
                                                 <button
                                                     class="flex items-center text-xs text-gray-400 hover:text-blue-400 transition-colors">
@@ -91,25 +113,38 @@
                                         <div class="flex justify-end gap-2">
                                             <!-- Bouton Acheter -->
                                             <button
-                                                class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg flex items-center gap-1 transition-colors">
+                                                class="px-3 py-2 rounded-lg flex items-center gap-1
+                                                bg-gradient-to-br from-success to-green-400
+                                                hover:from-green-400 hover:to-success
+                                                text-text-dark text-sm font-medium
+                                                transition-all duration-300
+                                                shadow-lg shadow-success/30
+                                                disabled:opacity-50 disabled:cursor-not-allowed">
                                                 <svg class="w-4 h-4" viewBox="0 0 16 16" fill="none">
                                                     <path
                                                         d="M11.709 7.19687H9.77023V2.67922C9.77023 1.6251 9.19925 1.41177 8.50278 2.20236L8.00082 2.77334L3.75297 7.60471C3.16944 8.26353 3.41414 8.80315 4.29258 8.80315H6.23141V13.3207C6.23141 14.3749 6.80238 14.5882 7.49885 13.7976L8.00082 13.2266L12.2486 8.3953C12.8321 7.73647 12.5874 7.19687 11.709 7.19687Z"
                                                         fill="currentColor" />
                                                 </svg>
-                                                <span>Acheter</span>
+                                                <span>Buy</span>
                                             </button>
 
                                             <!-- Bouton Vendre -->
                                             <button
-                                                class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-lg flex items-center gap-1 transition-colors">
-                                                <svg class="w-4 h-4 rotate-180" viewBox="0 0 16 16" fill="none">
-                                                    <path
-                                                        d="M11.709 7.19687H9.77023V2.67922C9.77023 1.6251 9.19925 1.41177 8.50278 2.20236L8.00082 2.77334L3.75297 7.60471C3.16944 8.26353 3.41414 8.80315 4.29258 8.80315H6.23141V13.3207C6.23141 14.3749 6.80238 14.5882 7.49885 13.7976L8.00082 13.2266L12.2486 8.3953C12.8321 7.73647 12.5874 7.19687 11.709 7.19687Z"
-                                                        fill="currentColor" />
-                                                </svg>
-                                                <span>Vendre</span>
+                                            class="px-3 py-2 rounded-lg flex items-center gap-1
+                                                    bg-gradient-to-br from-error to-rose-500
+                                                    hover:from-rose-500 hover:to-error
+                                                    text-text-contrast text-sm font-medium
+                                                    transition-all duration-300
+                                                    shadow-lg shadow-error/30
+                                                    disabled:opacity-50 disabled:cursor-not-allowed">
+                                            <svg class="w-4 h-4 rotate-180" viewBox="0 0 16 16" fill="none">
+                                                <path
+                                                d="M11.709 7.19687H9.77023V2.67922C9.77023 1.6251 9.19925 1.41177 8.50278 2.20236L8.00082 2.77334L3.75297 7.60471C3.16944 8.26353 3.41414 8.80315 4.29258 8.80315H6.23141V13.3207C6.23141 14.3749 6.80238 14.5882 7.49885 13.7976L8.00082 13.2266L12.2486 8.3953C12.8321 7.73647 12.5874 7.19687 11.709 7.19687Z"
+                                                fill="currentColor" />
+                                            </svg>
+                                            <span>Sell</span>
                                             </button>
+
 
                                             <!-- Bouton Options -->
                                             <button
@@ -132,12 +167,12 @@
 
             <!-- Section Pagination -->
             <div class="bg-gray-800 p-4 border-t border-gray-700 flex justify-between items-center">
-                <span class="text-gray-400">Affichage de 1 à 10 sur 42 tokens</span>
+                <span class="text-gray-400">{{ tokens?.items?.length || 0 }} token{{ (tokens?.items?.length || 0) !== 1 ? 's' : '' }}</span>
                 <div class="flex gap-2">
                     <button
-                        class="px-3 py-1 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors">Précédent</button>
+                        class="px-3 py-1 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors">Previous</button>
                     <button
-                        class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors">Suivant</button>
+                        class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors">Next</button>
                 </div>
             </div>
         </div>

@@ -5,7 +5,7 @@
   fill="none"
   xmlns="http://www.w3.org/2000/svg"
 >
-  <g transform="translate(-10, 60)">
+  <g transform="translate(-10, -15) scale(2)">
     <title>tops - funny</title>
     <path
       d="M140 56C154.667 55.3333 180.4 47.2 166 20"

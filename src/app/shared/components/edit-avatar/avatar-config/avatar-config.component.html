@@ -1,4 +1,4 @@
-<div class="bg-gray-900  border-gray-700/50 overflow-hidden">
+<div class="bg-bg-secondary border-gray-700/50 overflow-hidden">
   <!-- Header -->
   <div class="flex items-center h-9 px-3 border-b border-gray-700/50">
     <div class="text-[11px] text-gray-400 font-medium tracking-wide uppercase">Avatar Configurator</div>
@@ -16,9 +16,9 @@
           <button *ngFor="let shape of wrapperShapes" 
                   (click)="updateWrapperShape(shape)"
                   [class.bg-gradient-to-br]="currentAvatar.wrapperShape === shape"
-                  [class.from-indigo-500]="currentAvatar.wrapperShape === shape"
-                  [class.to-purple-500]="currentAvatar.wrapperShape === shape"
-                  [class.border-indigo-500]="currentAvatar.wrapperShape === shape"
+                  [class.from-text-secondary]="currentAvatar.wrapperShape === shape"
+                  [class.to-text-muted]="currentAvatar.wrapperShape === shape"
+                  [class.border-text-muted]="currentAvatar.wrapperShape === shape"
                   class="aspect-square rounded-xl bg-gray-800/80 border border-gray-700/50 
                          transition-all duration-200 group relative overflow-hidden
                          hover:border-gray-600/50 hover:bg-gray-800/90">
@@ -48,8 +48,8 @@
                   [style.background]="color"
                   class="w-6 h-6 rounded-full transition-all duration-200 relative
                          hover:shadow-[0_0_10px_rgba(99,102,241,0.3)]">
-            <div *ngIf="currentAvatar.background.color === color"
-                 class="absolute inset-0 rounded-full ring-2 ring-offset-2 ring-offset-gray-800 ring-indigo-500">
+            <div *ngIf="currentAvatar?.background?.color === color"
+                 class="absolute inset-0 rounded-full ring-2 ring-offset-2 ring-offset-gray-800 ring-text-muted">
             </div>
           </button>
         </div>
@@ -63,8 +63,8 @@
                   [style.background]="color"
                   class="w-6 h-6 rounded-full transition-all duration-200 relative
                          hover:shadow-[0_0_10px_rgba(99,102,241,0.3)]">
-            <div *ngIf="currentAvatar.background.borderColor === color"
-                 class="absolute inset-0 rounded-full ring-2 ring-offset-2 ring-offset-gray-800 ring-indigo-500">
+            <div *ngIf="currentAvatar?.background?.borderColor === color"
+                 class="absolute inset-0 rounded-full ring-2 ring-offset-2 ring-offset-gray-800 ring-text-muted">
             </div>
           </button>
         </div>
@@ -100,9 +100,9 @@
             <button *ngFor="let shape of widget.options"
                     (click)="updateWidgetShape(widget.type, shape)"
                     [class.bg-gradient-to-br]="isShapeSelected(widget.type, shape)"
-                    [class.from-indigo-500]="isShapeSelected(widget.type, shape)"
-                    [class.to-purple-500]="isShapeSelected(widget.type, shape)"
-                    [class.border-indigo-500]="isShapeSelected(widget.type, shape)"
+                    [class.from-text-secondary]="isShapeSelected(widget.type, shape)"
+                    [class.to-text-muted]="isShapeSelected(widget.type, shape)"
+                    [class.border-]="isShapeSelected(widget.type, shape)"
                     class="aspect-square rounded-xl bg-gray-800/80 border border-gray-700/50 
                            transition-all duration-200 group relative overflow-hidden
                            hover:border-gray-600/50 hover:bg-gray-800/90">
@@ -110,16 +110,16 @@
                    [innerHTML]="(getShapePreview(widget.type, shape) | async) || ''">
               </div>
               
-              <!-- Selected Indicator -->
+              
               <div *ngIf="isShapeSelected(widget.type, shape)"
-                   class="absolute inset-0 ring-1 ring-inset ring-indigo-500/50">
+                   class="absolute inset-0 ring-1 ring-inset ring-text-muted/50">
               </div>
               
-              <!-- Hover Effect -->
+              
               <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent 
                           opacity-0 group-hover:opacity-100 transition-opacity duration-300">
               </div>
-            </button>
+            </button> 
           </div>
         </div>
       </div>

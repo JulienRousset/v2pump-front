@@ -15,6 +15,7 @@ import { DomSanitizer } from '@angular/platform-browser';
 })
 export class AvatarConfigComponent {
   @Input() currentAvatar!: AvatarOption;
+  @Input() user: any;
   @Output() optionChange = new EventEmitter<AvatarOption>();
 
   wrapperShapes = Object.values(WrapperShape);
@@ -38,20 +39,26 @@ export class AvatarConfigComponent {
         options: settings.faceShape,
         colors: settings.skinColors,
       },
+     //    {
+     //      title: 'Eyes',
+     //      type: WidgetType.Eyes,
+     //      options: settings.eyesShape,
+     //    },
+     //    {
+      //     title: 'Nose',
+      //     type: WidgetType.Nose,
+    //       options: settings.noseShape,
+     //    },
+     //    {
+     //      title: 'Eyebrows',
+   //        type: WidgetType.Eyebrows,
+     //      options: settings.eyebrowsShape,
+   //   },
       {
-        title: 'Eyes',
-        type: WidgetType.Eyes,
-        options: settings.eyesShape,
-      },
-      {
-        title: 'Nose',
-        type: WidgetType.Nose,
-        options: settings.noseShape,
-      },
-      {
-        title: 'Eyebrows',
-        type: WidgetType.Eyebrows,
-        options: settings.eyebrowsShape,
+        title: 'Glasses',
+        type: WidgetType.Glasses,
+        options: settings.glassesShape,
+        colors: settings.commonColors,
       },
       {
         title: 'Hair',
@@ -59,16 +66,11 @@ export class AvatarConfigComponent {
         options: settings.topsShape,
         colors: settings.commonColors,
       },
-      {
-        title: 'Glasses',
-        type: WidgetType.Glasses,
-        options: settings.glassesShape,
-      },
-      {
-        title: 'Mouth',
-        type: WidgetType.Mouth,
-        options: settings.mouthShape,
-      },
+  //    {
+ //       title: 'Mouth',
+ //       type: WidgetType.Mouth,
+ //       options: settings.mouthShape,
+ //     },
       {
         title: 'Ear',
         type: WidgetType.Ear,
@@ -79,12 +81,12 @@ export class AvatarConfigComponent {
         type: WidgetType.Earrings,
         options: settings.earringsShape,
       },
-      {
-        title: 'Beard',
-        type: WidgetType.Beard,
-        options: settings.beardShape,
-        colors: settings.commonColors,
-      },
+     // {
+     //   title: 'Beard',
+     //   type: WidgetType.Beard,
+     //   options: settings.beardShape,
+     //   colors: settings.commonColors,
+     // },
       {
         title: 'Clothes',
         type: WidgetType.Clothes,
@@ -203,7 +205,7 @@ export class AvatarConfigComponent {
 
   private async generatePreview(type: WidgetType, shape: string): Promise<any> {
     const previewSize = 60;
-    const viewBox = "0 0 200 200"; // Retour au viewBox original
+    const viewBox = "0 0 300 300"; // Retour au viewBox original
     const color = this.getPreviewColor(type);
 
     // SVG de base avec attributs de centrage
@@ -221,10 +223,10 @@ export class AvatarConfigComponent {
         // Si shape est "none", retourner une croix SVG centrée
         if (shape === 'none') {
             const crossSVG = `
-              <path
+              <path transform="translate(10, -15) scale(1.5)"
                 d="M90 90 L110 110 M90 110 L110 90"
                 stroke="currentColor"
-                stroke-width="2"
+                stroke-width="6"
                 stroke-linecap="round"
                 stroke-linejoin="round"
               />
@@ -283,7 +285,7 @@ export class AvatarConfigComponent {
 
 private getTransformForType(type: WidgetType): string {
   const transformations = {
-      [WidgetType.Face]: 'translate(40, 40) scale(0.6)',  // Ajusté vers le bas
+      [WidgetType.Face]: 'translate(10, 10) scale(1)',  // Ajusté vers le bas
       [WidgetType.Tops]: 'translate(30, 15) scale(0.5)',  // Ajusté vers le haut
       [WidgetType.Eyes]: 'translate(40, 85) scale(1.3)',  // Plus bas pour aligner avec le visage
       [WidgetType.Eyebrows]: 'translate(-20, 70) scale(1.7)', // Ajusté en relation avec les yeux
@@ -291,8 +293,8 @@ private getTransformForType(type: WidgetType): string {
       [WidgetType.Mouth]: 'translate(45, 60) scale(1.7)', // Centré
       [WidgetType.Ear]: 'translate(60, 60) scale(1.7)',  // Aligné avec les yeux
       [WidgetType.Clothes]: 'translate(10, 80) scale(0.7)', // Légèrement plus haut
-      [WidgetType.Glasses]: 'translate(15, 70) scale(1.1)', // Aligné avec les yeux
-      [WidgetType.Earrings]: 'translate(60, 60) scale(1.7)', // Aligné avec les oreilles
+      [WidgetType.Glasses]: 'translate(5, -20) scale(1.3)', // Aligné avec les yeux
+      [WidgetType.Earrings]: 'translate(100, 70) scale(1.7)', // Aligné avec les oreilles
       [WidgetType.Beard]: 'translate(-50, -100) scale(2)' // Ajusté pour le menton
   };
 

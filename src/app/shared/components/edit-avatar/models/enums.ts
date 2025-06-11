@@ -29,15 +29,11 @@ export enum WrapperShape {
   }
   
   export enum TopsShape {
-    Beanie = 'beanie',
     Clean = 'clean',
     Danny = 'danny',
-    Fonze = 'fonze',
     Funny = 'funny',
-    Pixie = 'pixie',
-    Punk = 'punk',
-    Turban = 'turban',
-    Wave = 'wave'
+    Caplogo = 'caplogo',
+    None = 'none'
   }
   
   export enum EarShape {
@@ -72,8 +68,8 @@ export enum WrapperShape {
   }
   
   export enum GlassesShape {
-    Round = 'round',
-    Square = 'square',
+    Ski = 'ski',
+    Trail = 'trail',
     None = 'none'
   }
   
@@ -94,9 +90,9 @@ export enum WrapperShape {
   }
   
   export enum ClothesShape {
-    Crew = 'crew',
-    Collared = 'collared',
-    Open = 'open'
+    Tshirt = 'T-shirt',
+    Pull = 'pull',
+    None = 'none'
   }
   
   export enum ActionType {

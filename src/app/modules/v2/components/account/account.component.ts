@@ -1,6 +1,7 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ActivatedRoute } from '@angular/router';
+import { AvatarOption } from '../../../../shared/components/edit-avatar/models/types';
 
 @Component({
   selector: 'app-account',
@@ -63,4 +64,36 @@ export class AccountComponent implements OnInit {
     this.walletAddress = address;
     this.fetchWalletData();
   }
+
+  handleAvatarUpdate(updatedAvatar: AvatarOption) {
+    console.log('return', updatedAvatar)
+    const packed = this.packAvatar(updatedAvatar);
+    this.userData.picture = JSON.stringify(packed)
+  }
+
+  handleUserUpdate(updatedUser: any) {
+    console.log('return', updatedUser)
+    this.userData.name = updatedUser.name;
+    this.userData.description = updatedUser.description;
+  }
+  
+  private packAvatar(unpacked: AvatarOption): any {
+    const map: [string, string][] = [
+      ['gender', 'g'],
+      ['wrapperShape', 'w'],
+      ['background', 'b'],
+      ['widgets', 'i'],
+    ];
+  
+    const data: any = {
+      g: unpacked.gender,
+      w: unpacked.wrapperShape,
+      b: unpacked.background,
+      i: unpacked.widgets,
+    };
+  
+    return { m: map, d: data };
+  }
+  
+
 }

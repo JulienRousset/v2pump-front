@@ -22,6 +22,7 @@ module.exports = {
           primary: '#e9f9ff',
           secondary: '#b7e3f9',
           muted: '#537fa2',
+          dark: '#10171D',
         },
 
         // === Accent / UI ===
