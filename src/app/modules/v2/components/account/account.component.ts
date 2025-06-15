@@ -18,6 +18,7 @@ export class AccountComponent implements OnInit {
   isLoading = false;
   error: string | null = null;
   walletAddress:any = 'AdjwjWSGkp5DMAkGsUj2GeRgdV8hJzBEz4RpyY64zh1c'; // You might want to get this from user input or route params
+  isNaN = isNaN;
 
   constructor(private http: HttpClient, private route: ActivatedRoute) {}
 

@@ -111,9 +111,16 @@
                                     <!-- Colonne Balance -->
                                     <td class="px-6 py-4 text-right">
                                         <div class="flex flex-col gap-1">
-                                            <p><span class="font-bold text-white">
-                                                    ${{item.valueUsd | shortenNumber}}
-                                                </span></p>
+                                            <p *ngIf="item.valueUsd && !isNaN(item.valueUsd)">
+                                                <span class="font-bold text-white">
+                                                  ${{ item.valueUsd | shortenNumber }}
+                                                </span>
+                                              </p>
+                                              <p *ngIf="!item.valueUsd && isNaN(item.valueUsd)">
+                                                <span class="font-bold text-white">
+                                                  $ -
+                                                </span>
+                                              </p>
                                             <p><span class="text-gray-400">{{item.uiAmount | shortenNumber}}
                                                     {{item.symbol}}
                                                 </span></p>
