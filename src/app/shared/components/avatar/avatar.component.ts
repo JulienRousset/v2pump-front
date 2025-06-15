@@ -2,7 +2,7 @@
 import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { SvgAssetsService } from '../edit-avatar/services/svg.service';
-import { WrapperShape, WidgetType, TopsShape, EyesShape, ClothesShape, EarShape, MouthShape, FaceShape, NoseShape, EarringsShape, BeardShape, GlassesShape, EyebrowsShape } from '../edit-avatar/models/enums';
+import { WrapperShape, WidgetType, TopsShape, EyesShape, ClothesShape, MaskShape, EarShape, MouthShape, FaceShape, NoseShape, EarringsShape, BeardShape, GlassesShape, EyebrowsShape } from '../edit-avatar/models/enums';
 import { AvatarOption } from '../edit-avatar/models/types';
 import { EditAvatarComponent } from '../edit-avatar/edit-avatar.component';
 import { AvatarService } from '../edit-avatar/services/avatar.service';
@@ -181,6 +181,30 @@ export class AvatarComponent implements OnChanges {
                                   </g>`;
                                 }
                                 break;
+
+                        case WidgetType.Mask:
+                                    const maskPath = await this.svgAssetsService.getMaskPath(widget.shape as MaskShape).toPromise();
+                                  
+                                    if (maskPath.includes('<path')) {
+                                      // Remplace tous les fill existants et ajoute un fill s'il est manquant
+                                      const updatedPaths = maskPath
+                                        // Remplace tous les attributs fill="..." par le bon
+                                        .replace(/fill="[^"]*"/g, `fill="${widget.fillColor}"`)
+                                        // Ajoute fill si absent du path
+                                        .replace(/<path\b(?![^>]*fill=)/g, `<path fill="${widget.fillColor}"`);
+                                  
+                                      baseGroup += currentElement + updatedPaths + '</g>';
+                                    } else {
+                                      // Cas rare : un d seul, sans <path>
+                                      baseGroup += currentElement + `
+                                        <path 
+                                          d="${maskPath}" 
+                                          fill="${widget.fillColor}"
+                                          stroke="none"
+                                        />
+                                      </g>`;
+                                    }
+                         break;
                         case WidgetType.Glasses:
                                     const glassesPath = await this.svgAssetsService.getGlassesPath(widget.shape as GlassesShape).toPromise();
                                   
@@ -326,7 +350,7 @@ export class AvatarComponent implements OnChanges {
                     </g>
                 `;
 
-                if (widgetType === WidgetType.Face || widgetType === WidgetType.Clothes) {
+                if (widgetType === WidgetType.Face || widgetType === WidgetType.Clothes|| widgetType === WidgetType.Mask) {
                     baseGroup += groupElement;
                 } else {
                     otherElements += groupElement;
@@ -508,6 +532,7 @@ export class AvatarComponent implements OnChanges {
                     case 'd': widgetKey = 'beard'; break;
                     case 't': widgetKey = 'tops'; break;
                     case 'c': widgetKey = 'clothes'; break;
+                    case 'ms': widgetKey = 'mask'; break;
                     default: widgetKey = key;
                 }
 
@@ -580,7 +605,8 @@ export class AvatarComponent implements OnChanges {
             mouth: 'm',
             beard: 'bd',
             tops: 't',
-            clothes: 'cl'
+            clothes: 'cl',
+            mask: 'ms'
         };
 
         // Fonction récursive pour parcourir l'objet

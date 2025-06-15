@@ -14,7 +14,8 @@ import {
     MouthShape,
     BeardShape,
     ClothesShape,
-    ActionType
+    ActionType,
+    MaskShape
   } from './enums';
   
   export type None = 'none';
@@ -32,6 +33,7 @@ import {
     | MouthShape
     | BeardShape
     | ClothesShape
+    | MaskShape
     | None;
   
   // Base Widget Interface
@@ -90,9 +92,15 @@ import {
     fillColor: string;
   }
   
+  export interface MaskWidget extends Widget {
+    shape: MaskShape;
+    fillColor: string;
+  }
+
   // Widget Map Type
   export type WidgetMap = {
     [WidgetType.Face]: FaceWidget;
+    [WidgetType.Mask]: MaskWidget;
     [WidgetType.Tops]: TopsWidget;
     [WidgetType.Ear]: EarWidget;
     [WidgetType.Earrings]: EarringsWidget;
@@ -128,6 +136,7 @@ import {
     backgroundColor: string[];
     borderColor: string[];
     faceShape: FaceShape[];
+    maskShape: MaskShape[];
     topsShape: TopsShape[];
     earShape: EarShape[];
     earringsShape: EarringsShape[];

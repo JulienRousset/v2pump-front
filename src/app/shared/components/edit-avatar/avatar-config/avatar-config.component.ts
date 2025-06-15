@@ -1,12 +1,20 @@
 // avatar-config.component.ts
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { AvatarOption, ConfigurationOption } from '../models/types';
-import { FaceShape, WidgetType, WrapperShape } from '../models/enums';
+import { FaceShape, MaskShape, WidgetType, WrapperShape } from '../models/enums';
 import { AvatarService } from '../services/avatar.service';
 import { SvgAssetsService } from '../services/svg.service';
 import { BeardShape, ClothesShape, EarringsShape, EarShape, EyebrowsShape, EyesShape, GlassesShape, MouthShape, NoseShape, TopsShape } from "../models/enums";
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { DomSanitizer } from '@angular/platform-browser';
+type ShapeTypeMap = {
+  [WidgetType.Tops]: TopsShape;
+  [WidgetType.Mask]: MaskShape;
+  [WidgetType.Ear]: EarShape;
+  [WidgetType.Earrings]: EarringsShape;
+  [WidgetType.Glasses]: GlassesShape;
+  // Ajoute les autres au besoin
+};
 
 @Component({
   selector: 'app-avatar-config',
@@ -22,6 +30,8 @@ export class AvatarConfigComponent {
   backgroundColors: string[];
   borderColors: string[];
   configurations: ConfigurationOption[];
+
+  
 
   private previewCache = new Map<string, BehaviorSubject<string>>();
   public shapePreviewMap$ = new Map<string, Observable<string>>();
@@ -58,6 +68,12 @@ export class AvatarConfigComponent {
         title: 'Glasses',
         type: WidgetType.Glasses,
         options: settings.glassesShape,
+        colors: settings.commonColors,
+      },
+      {
+        title: 'Mask',
+        type: WidgetType.Mask,
+        options: settings.maskShape,
         colors: settings.commonColors,
       },
       {
@@ -157,8 +173,41 @@ export class AvatarConfigComponent {
       }
     });
   }
+  
+  clearWidgetShape<T extends keyof ShapeTypeMap>(
+    widgets: Partial<Record<WidgetType, any>>,
+    type: T,
+    shape: ShapeTypeMap[T]
+  ) {
+    const current = widgets[type];
+    return {
+      ...current,
+      shape
+    };
+  }
 
-  updateWidgetShape(type: WidgetType, shape: string) {
+  safeUpdateShape(type: WidgetType, shape: string) {
+    if (this.isShapeTypeKey(type)) {
+      this.updateWidgetShape(type, shape as ShapeTypeMap[typeof type]);
+    } else {
+      this.updateGenericWidgetShape(type, shape);
+    }
+  }
+  
+  isShapeTypeKey(type: WidgetType): type is keyof ShapeTypeMap {
+    return [
+      WidgetType.Tops,
+      WidgetType.Mask,
+      WidgetType.Ear,
+      WidgetType.Earrings,
+      WidgetType.Glasses
+    ].includes(type);
+  }
+  
+  
+  
+  // Fallback générique pour les autres widgets (pas besoin de typage complexe)
+  updateGenericWidgetShape(type: WidgetType, shape: string) {
     this.emitChange({
       ...this.currentAvatar,
       widgets: {
@@ -170,6 +219,82 @@ export class AvatarConfigComponent {
       }
     });
   }
+  
+  
+  updateWidgetShape<T extends keyof ShapeTypeMap>(
+    type: T,
+    shape: ShapeTypeMap[T]
+  ) {
+  
+    const updatedWidgets = {
+      ...this.currentAvatar.widgets,
+      [type]: {
+        ...this.currentAvatar.widgets[type]!,
+        shape
+      }
+    };
+  
+    // 1. mask ≠ none -> tops = none, glasses = none
+    if (type === WidgetType.Mask && shape !== MaskShape.None) {
+      updatedWidgets[WidgetType.Tops] = this.clearWidgetShape(
+        updatedWidgets,
+        WidgetType.Tops,
+        TopsShape.None
+      );
+      updatedWidgets[WidgetType.Glasses] = this.clearWidgetShape(
+        updatedWidgets,
+        WidgetType.Glasses,
+        GlassesShape.None
+      );
+    }
+  
+    // 2. tops ≠ none -> mask = none
+    else if (type === WidgetType.Tops && shape !== TopsShape.None) {
+      updatedWidgets[WidgetType.Mask] = this.clearWidgetShape(
+        updatedWidgets,
+        WidgetType.Mask,
+        MaskShape.None
+      );
+    }
+  
+    // 3. glasses ≠ none -> mask = none
+    else if (type === WidgetType.Glasses && shape !== GlassesShape.None) {
+      updatedWidgets[WidgetType.Mask] = this.clearWidgetShape(
+        updatedWidgets,
+        WidgetType.Mask,
+        MaskShape.None
+      );
+    }
+  
+    // 4. ear === none -> earrings = none
+    if (type === WidgetType.Ear && shape === EarShape.None) {
+      updatedWidgets[WidgetType.Earrings] = this.clearWidgetShape(
+        updatedWidgets,
+        WidgetType.Earrings,
+        EarringsShape.None
+      );
+    }
+
+    // 5. earrings ≠ none -> ear = attached
+    if (type === WidgetType.Earrings && shape !== EarringsShape.None) {
+      updatedWidgets[WidgetType.Ear] = this.clearWidgetShape(
+        updatedWidgets,
+        WidgetType.Ear,
+        EarShape.Attached
+      );
+    }
+  
+    this.emitChange({
+      ...this.currentAvatar,
+      widgets: updatedWidgets
+    });
+  }
+  
+  
+  
+  
+  
+  
 
   getWidgetColor(type: WidgetType): string {
     return this.currentAvatar.widgets[type]?.fillColor || '';
@@ -270,6 +395,9 @@ export class AvatarConfigComponent {
             case WidgetType.Beard:
                 path = await this.svgAssetsService.getBeardPath(shape as BeardShape, true).toPromise();
                 break;
+            case WidgetType.Mask:
+                  path = await this.svgAssetsService.getMaskPath(shape as MaskShape, true).toPromise();
+                break;
             default:
                 path = '';
         }
@@ -286,6 +414,7 @@ export class AvatarConfigComponent {
 private getTransformForType(type: WidgetType): string {
   const transformations = {
       [WidgetType.Face]: 'translate(10, 10) scale(1)',  // Ajusté vers le bas
+      [WidgetType.Mask]: 'translate(10, 10) scale(1)',  // Ajusté vers le bas
       [WidgetType.Tops]: 'translate(30, 15) scale(0.5)',  // Ajusté vers le haut
       [WidgetType.Eyes]: 'translate(40, 85) scale(1.3)',  // Plus bas pour aligner avec le visage
       [WidgetType.Eyebrows]: 'translate(-20, 70) scale(1.7)', // Ajusté en relation avec les yeux
@@ -295,7 +424,7 @@ private getTransformForType(type: WidgetType): string {
       [WidgetType.Clothes]: 'translate(10, 80) scale(0.7)', // Légèrement plus haut
       [WidgetType.Glasses]: 'translate(5, -20) scale(1.3)', // Aligné avec les yeux
       [WidgetType.Earrings]: 'translate(100, 70) scale(1.7)', // Aligné avec les oreilles
-      [WidgetType.Beard]: 'translate(-50, -100) scale(2)' // Ajusté pour le menton
+      [WidgetType.Beard]: 'translate(-50, -100) scale(2)', // Ajusté pour le menton
   };
 
   return transformations[type] || 'translate(40, 40) scale(0.6)';
@@ -313,7 +442,8 @@ private getPreviewColor(type: WidgetType): string {
         [WidgetType.Clothes]: '#F4D150',
         [WidgetType.Glasses]: '#2C1810',
         [WidgetType.Earrings]: '#FFD700',
-        [WidgetType.Beard]: '#506AF4'
+        [WidgetType.Beard]: '#506AF4',
+        [WidgetType.Mask]: '#506AF4',
     };
 
     //@ts-ignore

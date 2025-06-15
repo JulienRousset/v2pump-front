@@ -98,7 +98,7 @@
         <div class="bg-gray-800/40 rounded-xl border border-gray-700/50 p-3">
           <div class="grid grid-cols-4 gap-2">
             <button *ngFor="let shape of widget.options"
-                    (click)="updateWidgetShape(widget.type, shape)"
+                    (click)="safeUpdateShape(widget.type, shape)"
                     [class.bg-gradient-to-br]="isShapeSelected(widget.type, shape)"
                     [class.from-text-secondary]="isShapeSelected(widget.type, shape)"
                     [class.to-text-muted]="isShapeSelected(widget.type, shape)"

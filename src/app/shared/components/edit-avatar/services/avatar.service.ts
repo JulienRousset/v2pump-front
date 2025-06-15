@@ -20,7 +20,8 @@ import {
   BeardShape,
   GlassesShape,
   EarringsShape,
-  EyebrowsShape
+  EyebrowsShape,
+  MaskShape
 } from '../models/enums';
 
 @Injectable({
@@ -29,11 +30,12 @@ import {
 export class AvatarService {
   private readonly AVATAR_LAYER: any = {
     [WidgetType.Face]: { zIndex: 10 },
+    [WidgetType.Mask]: { zIndex: 111 },
     [WidgetType.Ear]: { zIndex: 102 },
     [WidgetType.Earrings]: { zIndex: 103 },
     [WidgetType.Eyebrows]: { zIndex: 70 },
     [WidgetType.Eyes]: { zIndex: 50 },
-    [WidgetType.Nose]: { zIndex: 60 },
+    [WidgetType.Nose]: { zIndex: 100 },
     [WidgetType.Glasses]: { zIndex: 90 },
     [WidgetType.Mouth]: { zIndex: 105 },
     [WidgetType.Beard]: { zIndex: 100 },
@@ -55,6 +57,7 @@ export class AvatarService {
     mouthShape: Object.values(MouthShape),
     beardShape: Object.values(BeardShape),
     clothesShape: Object.values(ClothesShape),
+    maskShape: Object.values(MaskShape),
     commonColors: [
       '#FF6B6B', // rouge corail pop
       '#FEC260', // orange chaud moderne
@@ -125,20 +128,11 @@ export class AvatarService {
       },
       [WidgetType.Nose]: {
         shape: this.getRandomValue(this.SETTINGS.noseShape),
-        zIndex: 60
-      },
-      [WidgetType.Glasses]: {
-        shape: this.getRandomValue(this.SETTINGS.glassesShape),
-        zIndex: 90
+        zIndex: 100
       },
       [WidgetType.Mouth]: {
         shape: this.getRandomValue(this.SETTINGS.mouthShape),
         zIndex: 105
-      },
-      [WidgetType.Beard]: {
-        shape: BeardShape.Scruff,
-        fillColor: this.getRandomColor(),
-        zIndex: 100
       },
       [WidgetType.Tops]: {
         shape: gender === Gender.Male ? 
@@ -151,13 +145,25 @@ export class AvatarService {
         shape: this.getRandomValue(this.SETTINGS.clothesShape),
         fillColor: this.getRandomColor(),
         zIndex: 110
+      },
+      [WidgetType.Mask]: {
+        shape: this.getRandomValue(this.SETTINGS.maskShape),
+        fillColor: this.getRandomColor(),
+        zIndex: 110
       }
     };
   
-    // Gestion conditionnelle des widgets optionnels
+    // Optionnels avec proba
     if (Math.random() > 0.7) {
       widgets[WidgetType.Glasses] = {
         shape: this.getRandomValue(this.SETTINGS.glassesShape.filter(shape => shape !== 'none')),
+        fillColor: this.getRandomColor(),
+        zIndex: 90
+      };
+    } else {
+      widgets[WidgetType.Glasses] = {
+        shape: 'none' as GlassesShape,
+        fillColor: this.getRandomColor(),
         zIndex: 90
       };
     }
@@ -167,6 +173,11 @@ export class AvatarService {
         shape: this.getRandomValue(this.SETTINGS.earringsShape.filter(shape => shape !== 'none')),
         zIndex: 103
       };
+    } else {
+      widgets[WidgetType.Earrings] = {
+        shape: 'none' as EarringsShape,
+        zIndex: 103
+      };
     }
   
     if (gender === Gender.Male && Math.random() > 0.7) {
@@ -174,6 +185,55 @@ export class AvatarService {
         shape: BeardShape.Scruff,
         fillColor: widgets[WidgetType.Tops]?.fillColor,
         zIndex: 105
+      };
+    }
+  
+    // 🔁 Ajustements logiques entre widgets
+    const maskFill = widgets[WidgetType.Mask]?.fillColor ?? this.getRandomColor();
+
+    widgets[WidgetType.Mask] = {
+      shape: 'none' as MaskShape,
+      fillColor: maskFill,
+      zIndex: 110
+    };
+    const ear = widgets[WidgetType.Ear]?.shape;
+    const earrings = widgets[WidgetType.Earrings]?.shape;
+    const mask = widgets[WidgetType.Mask]?.shape;
+    const glasses = widgets[WidgetType.Glasses]?.shape;
+    const tops = widgets[WidgetType.Tops]?.shape;
+  
+    // 1. ear === none → earrings = none
+    if (ear === EarShape.None) {
+      widgets[WidgetType.Earrings] = { shape: EarringsShape.None, zIndex: 103 };
+    }
+  
+    // 2. earrings ≠ none → ear = attached
+    if (earrings && earrings !== EarringsShape.None) {
+      widgets[WidgetType.Ear] = { shape: EarShape.Attached, zIndex: 102 };
+    }
+  
+    // 3. mask ≠ none → glasses = none
+    if (mask && mask !== MaskShape.None) {
+      widgets[WidgetType.Glasses] = { shape: GlassesShape.None, zIndex: 90 };
+    }
+  
+    // 4. glasses ≠ none → mask = none
+    if (glasses && glasses !== 'none') {
+      const maskFill = widgets[WidgetType.Mask]?.fillColor ?? this.getRandomColor();
+      widgets[WidgetType.Mask] = {
+        shape: 'none' as MaskShape,
+        fillColor: maskFill,
+        zIndex: 110
+      };
+    }
+  
+    // 5. tops ≠ none → mask = none
+    if (tops && tops !== 'none') {
+      const maskFill = widgets[WidgetType.Mask]?.fillColor ?? this.getRandomColor();
+      widgets[WidgetType.Mask] = {
+        shape: 'none' as MaskShape,
+        fillColor: maskFill,
+        zIndex: 110
       };
     }
   
@@ -187,6 +247,7 @@ export class AvatarService {
       widgets
     };
   }
+  
   
   generateMultipleAvatars(count: number): AvatarOption[] {
     const avatars = new Set<string>();
@@ -226,6 +287,7 @@ getSettings(): AvatarSettings {
     mouthShape: [...this.SETTINGS.mouthShape],
     beardShape: [...this.SETTINGS.beardShape],
     clothesShape: [...this.SETTINGS.clothesShape],
+    maskShape: [...this.SETTINGS.maskShape],
     commonColors: [...this.SETTINGS.commonColors],
     skinColors: [...this.SETTINGS.skinColors],
     backgroundColor: [...this.SETTINGS.backgroundColor],
@@ -258,6 +320,8 @@ getWidgetShapes(type: WidgetType): string[] {
       return this.SETTINGS.beardShape;
     case WidgetType.Clothes:
       return this.SETTINGS.clothesShape;
+    case WidgetType.Mask:
+      return this.SETTINGS.maskShape;
     default:
       return [];
   }
@@ -269,7 +333,9 @@ getColorsForWidget(type: WidgetType): string[] {
       return this.SETTINGS.skinColors;
     case WidgetType.Tops:
     case WidgetType.Clothes:
+    case WidgetType.Mask:
     case WidgetType.Beard:
+    case WidgetType.Glasses:
       return this.SETTINGS.commonColors;
     default:
       return [];
@@ -281,7 +347,9 @@ isColorableWidget(type: WidgetType): boolean {
     WidgetType.Face,
     WidgetType.Tops,
     WidgetType.Clothes,
-    WidgetType.Beard
+    WidgetType.Beard,
+    WidgetType.Mask,
+    WidgetType.Glasses
   ].includes(type);
 }
 
@@ -292,6 +360,8 @@ getDefaultColor(type: WidgetType): string {
     case WidgetType.Tops:
     case WidgetType.Clothes:
       return this.SETTINGS.commonColors[0];
+    case WidgetType.Glasses:
+        return this.SETTINGS.commonColors[0];
     default:
       return '';
   }
@@ -302,7 +372,8 @@ isOptionalWidget(type: WidgetType): boolean {
   return [
     WidgetType.Glasses,
     WidgetType.Earrings,
-    WidgetType.Beard
+    WidgetType.Beard,
+    WidgetType.Mask
   ].includes(type);
 }
 
@@ -317,6 +388,7 @@ getWidgetsByGender(gender: Gender): WidgetType[] {
     WidgetType.Nose,
     WidgetType.Mouth,
     WidgetType.Clothes,
+    WidgetType.Mask,
     WidgetType.Glasses,
     WidgetType.Earrings
   ];

@@ -3,31 +3,43 @@
 <div class="min-h-screen bg-gradient-to-br from-bg-card via-bg-secondary to-black text-white animate-gradient-slow bg-[length:400%_400%]">
     <div class="container mx-auto px-4 md:px-6 lg:px-8 py-6">
 
-        <div class="max-w-5xl flex mx-auto items-end justify-between w-full z-1">
-            <div class="flex items-end">
-                <div class="-mb-1 relative group">
-                    <app-avatar *ngIf="userData.picture" [encodedAvatar]="userData.picture ? userData.picture : '-'" [width]="70" [height]="70"
-                        [noPadding]="true"
-                        class="transform transition-transform duration-300 group-hover:scale-105"></app-avatar>
+        <div class="max-w-5xl mx-auto w-full flex items-center justify-between gap-2 z-1 h-[70px] lg:h-auto overflow-hidden">
+            <!-- Bloc gauche : Avatar + Infos -->
+            <div class="flex items-end gap-2 min-w-0 overflow-hidden">
+                <!-- Avatar -->
+                <div class="h-[70px] lg:h-auto relative group shrink-0">
+                <app-avatar
+                    *ngIf="userData.picture"
+                    [encodedAvatar]="userData.picture || '-'"
+                    [width]="70"
+                    [height]="70"
+                    [noPadding]="true"
+                    class="transform transition-transform duration-300 group-hover:scale-105"
+                ></app-avatar>
                 </div>
 
-                <div class="ml-2">
-                    <span class="text-xl font-semibold">{{userData.name ? userData.name : '-'}}</span>
-                </div>
-                <div class="ml-2">
-                    <span class="text-xl font-semibold">| {{userData.description ? userData.description : 'No description'}}</span>
+                <!-- Nom + Description -->
+                <div class="flex flex-col sm:flex-row gap-1 min-w-0 overflow-hidden">
+                <span class="text-base font-semibold truncate max-w-[170px] sm:max-w-xs">
+                    {{ userData.name || '-' }}
+                </span>
+                <span class="text-base font-semibold truncate md:max-w-full sm:max-w-sm">
+                    | {{ userData.description || 'No description' }}
+                </span>
                 </div>
             </div>
 
-            <!-- Icône crayon à droite -->
-            <div class="cursor-pointer hover:text-gray-600 mb-1" (click)="openEdit = true">
+            <!-- Crayon -->
+            <div class="my-2 cursor-pointer hover:text-gray-600 shrink-0" (click)="openEdit = true">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                    stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                        d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                 </svg>
             </div>
         </div>
+
+          
         <div *ngIf="!tokens.items">
             loading
         </div>

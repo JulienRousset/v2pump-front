@@ -16,7 +16,8 @@ export enum WrapperShape {
     Glasses = 'glasses',
     Mouth = 'mouth',
     Beard = 'beard',
-    Clothes = 'clothes'
+    Clothes = 'clothes',
+    Mask = 'mask'
   }
   
   export enum Gender {
@@ -33,12 +34,15 @@ export enum WrapperShape {
     Danny = 'danny',
     Funny = 'funny',
     Caplogo = 'caplogo',
+    Cap = 'cap',
+    Bonnie = 'Bonnie',
     None = 'none'
   }
   
   export enum EarShape {
     Attached = 'attached',
-    Detached = 'detached'
+    Detached = 'detached',
+    None = 'none'
   }
   
   export enum EarringsShape {
@@ -66,8 +70,15 @@ export enum WrapperShape {
     Pointed = 'pointed',
     Curve = 'curve'
   }
+
+  export enum MaskShape {
+    Pepe = 'pepe',
+    Moodeng = 'moodeng',
+    None = 'none'
+  }
   
   export enum GlassesShape {
+    Sun = 'sun',
     Ski = 'ski',
     Trail = 'trail',
     None = 'none'
@@ -90,6 +101,7 @@ export enum WrapperShape {
   }
   
   export enum ClothesShape {
+    TshirtLogo = 'T-shirt-logo',
     Tshirt = 'T-shirt',
     Pull = 'pull',
     None = 'none'

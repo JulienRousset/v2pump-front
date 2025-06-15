@@ -3,7 +3,7 @@ import { Component, OnInit, ViewChild, ElementRef, EventEmitter, Output, Input }
 import { BehaviorSubject, Observable, throwError, } from 'rxjs';
 import { AvatarService } from './services/avatar.service';
 import { AvatarOption } from './models/types';
-import { WrapperShape, WidgetType, FaceShape } from './models/enums';
+import { WrapperShape, WidgetType, FaceShape, MaskShape } from './models/enums';
 import html2canvas from 'html2canvas';
 import { SvgAssetsService } from './services/svg.service';
 import { BeardShape, ClothesShape, EarringsShape, EarShape, EyebrowsShape, EyesShape, GlassesShape, MouthShape, NoseShape, TopsShape } from "./models/enums";
@@ -28,7 +28,7 @@ export class EditAvatarComponent implements OnInit {
   svgContent = '';
   biography = '';
 
-  username: string = 'kk';
+  username: string = 'Username';
   exists: any = false;
   checked: boolean = false;
   isLoading: boolean = false;
@@ -38,7 +38,7 @@ export class EditAvatarComponent implements OnInit {
   bioStatus = {
     show: true,
     isSuccess: false,
-    message: 'test'
+    message: ''
   };
 
   @Input() set isOpen(value: boolean) {
@@ -85,9 +85,6 @@ export class EditAvatarComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    console.log('picture', this.picture)
-    console.log('user', this.user)
-    console.log(this.avatarOptionSubject.value)
     if (typeof this.picture === 'string') {
       try {
         this.picture = JSON.parse(this.picture);
@@ -107,7 +104,6 @@ export class EditAvatarComponent implements OnInit {
     
     this.username = this.user.name;
     this.biography = this.user.description;
-    this.updateSize();
     if(!this.picture){
       this.generateAvatar();
     }
@@ -176,7 +172,7 @@ export class EditAvatarComponent implements OnInit {
   
 
   saveBiography() {
-    if (this.biography.length >= 60) {
+    if (this.biography.length >= 61) {
       this.bioStatus.show = true;
       this.bioStatus.message = 'Description cannot exceed 60 characters';
       this.bioStatus.isSuccess = false;
@@ -474,7 +470,6 @@ export class EditAvatarComponent implements OnInit {
 
               case WidgetType.Clothes:
                 const clothesPath = await this.svgAssetsService.getClothesPath(widget.shape as ClothesShape).toPromise();
-              
                 if (clothesPath.includes('<path')) {
                   // Remplace tous les fill existants et ajoute un fill s'il est manquant
                   const updatedPaths = clothesPath
@@ -495,6 +490,29 @@ export class EditAvatarComponent implements OnInit {
                   </g>`;
                 }
                 break;
+
+                case WidgetType.Mask:
+                  const maskPath = await this.svgAssetsService.getMaskPath(widget.shape as MaskShape).toPromise();
+                  if (maskPath.includes('<path')) {
+                    // Remplace tous les fill existants et ajoute un fill s'il est manquant
+                    const updatedPaths = maskPath
+                      // Remplace tous les attributs fill="..." par le bon
+                      .replace(/fill="[^"]*"/g, `fill="${widget.fillColor}"`)
+                      // Ajoute fill si absent du path
+                      .replace(/<path\b(?![^>]*fill=)/g, `<path fill="${widget.fillColor}"`);
+                
+                    baseGroup += currentElement + updatedPaths + '</g>';
+                  } else {
+                    // Cas rare : un d seul, sans <path>
+                    baseGroup += currentElement + `
+                      <path 
+                        d="${maskPath}" 
+                        fill="${widget.fillColor}"
+                        stroke="none"
+                      />
+                    </g>`;
+                  }
+                  break;
 
                 case WidgetType.Glasses:
                                     const glassesPath = await this.svgAssetsService.getGlassesPath(widget.shape as GlassesShape).toPromise();
@@ -696,6 +714,7 @@ export class EditAvatarComponent implements OnInit {
       "beard": "br",
       "tops": "t",
       "clothes": "cl",
+      "mask": "ms",
       "shape": "s",
       "fillColor": "fc",
       "zIndex": "z"

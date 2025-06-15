@@ -3,7 +3,7 @@ import { HttpClient } from "@angular/common/http";
 import { Observable, of } from "rxjs";
 import {
     BeardShape, ClothesShape, EarringsShape, EarShape, EyebrowsShape,
-    EyesShape, FaceShape, GlassesShape, MouthShape, NoseShape, TopsShape
+    EyesShape, FaceShape, GlassesShape, MouthShape, NoseShape, TopsShape, MaskShape
 } from "../models/enums";
 import { map, shareReplay, catchError } from "rxjs/operators";
 
@@ -74,10 +74,24 @@ export class SvgAssetsService {
     getClothesPath(shape: ClothesShape, isPreview: boolean = false): Observable<string> {
         const basePath = isPreview ? this.PREVIEW_PATH : this.WIDGET_PATH;
         switch (shape) {
+            case ClothesShape.TshirtLogo:
+                return this.loadSvg(`${basePath}/clothes/T-shirt-logo.svg`);
             case ClothesShape.Tshirt:
                 return this.loadSvg(`${basePath}/clothes/T-shirt.svg`);
             case ClothesShape.Pull:
                 return this.loadSvg(`${basePath}/clothes/pull.svg`);
+            default:
+                return of('');
+        }
+    }
+
+    getMaskPath(shape: MaskShape, isPreview: boolean = false): Observable<string> {
+        const basePath = isPreview ? this.PREVIEW_PATH : this.WIDGET_PATH;
+        switch (shape) {
+            case MaskShape.Pepe:
+                return this.loadSvg(`${basePath}/masks/Pepe.svg`);
+            case MaskShape.Moodeng:
+                return this.loadSvg(`${basePath}/masks/Moodeng.svg`);
             default:
                 return of('');
         }
@@ -181,6 +195,8 @@ export class SvgAssetsService {
     getGlassesPath(shape: GlassesShape, isPreview: boolean = false): Observable<string> {
         const basePath = isPreview ? this.PREVIEW_PATH : this.WIDGET_PATH;
         switch (shape) {
+            case GlassesShape.Sun:
+                return this.loadSvg(`${basePath}/glasses/sunglasses.svg`);
             case GlassesShape.Ski:
                 return this.loadSvg(`${basePath}/glasses/ski.svg`);
             case GlassesShape.Trail:
@@ -199,6 +215,10 @@ export class SvgAssetsService {
                 return this.loadSvg(`${basePath}/tops/danny.svg`);
             case TopsShape.Caplogo:
                 return this.loadSvg(`${basePath}/tops/caplogo.svg`);
+                case TopsShape.Cap:
+            return this.loadSvg(`${basePath}/tops/cap.svg`);
+            case TopsShape.Bonnie:
+                return this.loadSvg(`${basePath}/tops/bonnie.svg`);
             case TopsShape.Funny:
                 return this.loadSvg(`${basePath}/tops/funny.svg`);
             default:
@@ -241,6 +261,10 @@ export class SvgAssetsService {
 
     getBeardPreviewPath(shape: BeardShape): Observable<string> {
         return this.getBeardPath(shape, true);
+    }
+
+    getMaskPreviewPath(shape: MaskShape): Observable<string> {
+        return this.getMaskPath(shape, true);
     }
 
     // Méthode pour vider le cache si nécessaire

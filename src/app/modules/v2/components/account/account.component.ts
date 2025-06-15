@@ -9,7 +9,7 @@ import { AvatarOption } from '../../../../shared/components/edit-avatar/models/t
   styleUrls: ['./account.component.scss'],
 })
 export class AccountComponent implements OnInit {
-  text = '{"m":[["gender","g"],["wrapperShape","w"],["background","b"],["widgets","i"],["color","c"],["borderColor","bc"],["face","f"],["ear","e"],["earrings","er"],["eyebrows","eb"],["eyes","ey"],["nose","n"],["glasses","gl"],["mouth","m"],["beard","br"],["tops","t"],["clothes","cl"],["shape","s"],["fillColor","fc"],["zIndex","z"]],"d":{"g":"male","w":"circle","b":{"c":"linear-gradient(45deg, #E3648C, #D97567)","bc":"transparent"},"i":{"f":{"s":"base","fc":"#F8D9CE","z":10},"e":{"s":"detached","z":102},"er":{"s":"hoop","z":103},"eb":{"s":"down","z":70},"ey":{"s":"smiling","z":50},"n":{"s":"round","z":60},"gl":{"s":"round","z":90},"m":{"s":"laughing","z":105},"br":{"s":"scruff","fc":"#E0DDFF","z":100},"t":{"s":"beanie","fc":"#F48150","z":80},"cl":{"s":"open","fc":"#F4D150","z":110}}}}';
+  text = '{"m":[["gender","g"],["wrapperShape","w"],["background","b"],["widgets","i"],["color","c"],["borderColor","bc"],["face","f"],["ear","e"],["earrings","er"],["eyebrows","eb"],["eyes","ey"],["nose","n"],["glasses","gl"],["mouth","m"],["beard","br"],["tops","t"],["clothes","cl"],["mask","ms"],["shape","s"],["fillColor","fc"],["zIndex","z"]],"d":{"g":"male","w":"circle","b":{"c":"linear-gradient(45deg, #E3648C, #D97567)","bc":"transparent"},"i":{"f":{"s":"base","fc":"#F8D9CE","z":10},"e":{"s":"detached","z":102},"er":{"s":"hoop","z":103},"eb":{"s":"down","z":70},"ey":{"s":"smiling","z":50},"n":{"s":"round","z":60},"gl":{"s":"round","z":90},"m":{"s":"laughing","z":105},"br":{"s":"scruff","fc":"#E0DDFF","z":100},"t":{"s":"beanie","fc":"#F48150","z":80},"cl":{"s":"open","fc":"#F4D150","z":110}}}}';
   openEdit = false;
   
   // Add properties to store the data
@@ -24,7 +24,6 @@ export class AccountComponent implements OnInit {
   async ngOnInit() {
  
     this.walletAddress = this.route.snapshot.paramMap.get('id');
-    console.log(this.walletAddress);
     if (this.walletAddress) {
       await this.fetchWalletData();
     }
@@ -45,7 +44,6 @@ export class AccountComponent implements OnInit {
       if (response && response.status === 200) {
         this.userData = response.data.user;
         this.tokens = response.data.wallet.data;
-        console.log(this.tokens);
       } else {
         this.error = response.message || 'Failed to fetch wallet data';
       }
@@ -66,13 +64,11 @@ export class AccountComponent implements OnInit {
   }
 
   handleAvatarUpdate(updatedAvatar: AvatarOption) {
-    console.log('return', updatedAvatar)
     const packed = this.packAvatar(updatedAvatar);
     this.userData.picture = JSON.stringify(packed)
   }
 
   handleUserUpdate(updatedUser: any) {
-    console.log('return', updatedUser)
     this.userData.name = updatedUser.name;
     this.userData.description = updatedUser.description;
   }
