@@ -19,6 +19,8 @@ export class AccountComponent implements OnInit {
   error: string | null = null;
   walletAddress:any = 'AdjwjWSGkp5DMAkGsUj2GeRgdV8hJzBEz4RpyY64zh1c'; // You might want to get this from user input or route params
   isNaN = isNaN;
+  public level = 2;
+  public currentExp = 100;
 
   constructor(private http: HttpClient, private route: ActivatedRoute) {}
 
@@ -91,6 +93,39 @@ export class AccountComponent implements OnInit {
   
     return { m: map, d: data };
   }
-  
 
+  
+  getExpForLevel(level: number): number {
+    // Exemple simple : chaque niveau nécessite +750 XP
+    return (level - 1) * 750;
+  }
+  
+  getCurrentLevelMinExp(): number {
+    return this.getExpForLevel(this.level);
+  }
+  
+  getNextLevelMinExp(): number {
+    return this.getExpForLevel(this.level + 1);
+  }
+  
+  getProgress(): number {
+    const from = this.getCurrentLevelMinExp();
+    const to = this.getNextLevelMinExp();
+    const gained = this.currentExp - from;
+    const total = to - from;
+  
+    return Math.max(0, Math.min(1, gained / total));
+  }
+  
+  getProgressPercentage(): number {
+    return Math.round(this.getProgress() * 100);
+  }
+  
+  getDisplayedExp(): number {
+    return Math.max(0, this.currentExp - this.getCurrentLevelMinExp());
+  }
+  
+  getNeededExp(): number {
+    return this.getNextLevelMinExp() - this.getCurrentLevelMinExp();
+  }
 }

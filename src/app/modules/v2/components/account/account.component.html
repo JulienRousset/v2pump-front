@@ -43,6 +43,31 @@
         <div *ngIf="!tokens.items">
             loading
         </div>
+        <div class="p-4 my-2 rounded-xl bg.card shadow-md border border-accent w-full max-w-md mx-auto text-white">
+            <div class="flex justify-between items-center mb-2">
+              <div class="text-lg font-bold">Niveau {{ level }}</div>
+              <div class="text-sm text-muted">
+                {{ getDisplayedExp() }} / {{ getNeededExp() }} XP
+              </div>
+            </div>
+          
+            <!-- Barre de progression -->
+            <div class="w-full h-4 bg-divider rounded-full overflow-hidden">
+              <div
+                class="h-full bg-accent transition-all duration-500 ease-in-out"
+                [style.width.%]="getProgressPercentage()"
+              ></div>
+            </div>
+          
+            <div class="text-xs text-muted mt-1 text-right">
+              {{ getProgressPercentage() }} % vers le niveau {{ level + 1 }}
+            </div>
+          </div>
+          
+          
+          
+          
+          
         <!-- Container Principal -->
         <div *ngIf="tokens.items" class="max-w-5xl mx-auto bg-bg-secondary rounded-lg shadow-xl overflow-hidden z-2">
 
